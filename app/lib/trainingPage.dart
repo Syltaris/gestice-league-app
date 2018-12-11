@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class TrainingPage extends StatefulWidget { 
-  final String title;
-  final bool trained;
-  final String trainingDuration;
+  String title;
+  bool trained;
+  var trainingDuration;
 
   TrainingPage(this.title, this.trained, this.trainingDuration);
 
@@ -15,8 +15,8 @@ class TrainingPage extends StatefulWidget {
 
 */
 class _TrainingPageState extends State<TrainingPage> {
-  bool _isTrained = false; //need to bring out from root data
-  String _trainingDuration = "5 minutes";
+  bool _isTrained; //need to bring out from root data
+  var _trainingDuration;
 
   _TrainingPageState(this._isTrained, this._trainingDuration);
 
@@ -30,40 +30,55 @@ class _TrainingPageState extends State<TrainingPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center, //mainAxis here is vertical axis, cross is hori
           children: <Widget>[
-            Padding(
-              padding: EdgeInsets.all(50.0),
-              child: _isTrained 
-              ? Text('You have already trained this superpower!',
-                  style: TextStyle(
-                    fontSize: 20,
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.all(50.0),
+                child: _isTrained 
+                ? Text('You have already trained this superpower!',
+                    style: TextStyle(
+                      fontSize: 20,
+                    )
+                  ) 
+                : _trainingDuration > 0 
+                ? Text('You have been training this superpower for $_trainingDuration seconds. Would you like to resume training?',
+                    style: TextStyle(
+                      fontSize: 20,
+                    )
                   )
-                ) 
-              : Text('You have been training this superpower for $_trainingDuration. Would you like to resume training?',
-                  style: TextStyle(
-                    fontSize: 20,
-                  )
-                ),
-            ),
-            ButtonTheme.bar( // make buttons use the appropriate styles for cards
-              child: ButtonBar(
-                alignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  RaisedButton(
-                    color: Colors.orange,
-                    textColor: Colors.white,
-                    child: const Text('UPLOAD'),
-                    onPressed: _isTrained ? null : () => {},
+                : Text("Let's begin training your new superpower!",
+                    style: TextStyle(
+                      fontSize: 20,
+                    )
                   ),
-                  RaisedButton(
-                    color: Colors.green,
-                    disabledColor: Colors.grey,
-                    textColor: Colors.white,
-                    child: const Text('RESUME TRAINING'),
-                    onPressed: _isTrained ? null : () => {},
-                  ),
-                ],
               ),
             ),
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 150.0),
+              child: ButtonTheme.bar( // make buttons use the appropriate styles for cards
+                child: ButtonBar(
+                  alignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    RaisedButton.icon(
+                      icon: Icon(Icons.filter_drama) ,
+                      label: const Text('UPLOAD'),
+                      color: Colors.orange,
+                      disabledColor: Colors.grey,
+                      textColor: Colors.white,
+                      onPressed: _isTrained ? null : () => {},
+                    ),
+                    RaisedButton.icon(
+                      icon: Icon(Icons.play_arrow) ,
+                      label: const Text('RESUME TRAINING'),
+                      color: Colors.green,
+                      disabledColor: Colors.grey,
+                      textColor: Colors.white,
+                      onPressed: _isTrained ? null : () => {},
+                    ),
+                  ],
+                ),
+              ),
+            )
+            
           ]
         )
       )

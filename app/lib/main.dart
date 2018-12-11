@@ -51,19 +51,25 @@ class _MyHomePageState extends State<HomePage> {
             GestureItem( 
               false,
               false,
-              "5 mins",
+              5,
               "Telekineseis"
             ),
             GestureItem( 
               true,
               true,
-              "15 mins",
+              15,
               "Woohoo!"
             ),
             GestureItem( 
               false,
               false,
-              "0 mins",
+              0,
+              "New Superpower"
+            ),
+            GestureItem( 
+              false,
+              false,
+              0,
               "New Superpower"
             ),
           ],

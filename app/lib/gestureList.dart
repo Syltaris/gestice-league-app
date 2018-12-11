@@ -5,7 +5,7 @@ import 'package:app/trainingPage.dart';
 class GestureItem extends StatefulWidget { 
   bool _isGestureTrained;
   bool _isGestureActive;
-  String _gestureTrainingDuration;
+  var _gestureTrainingDuration;
   String _gestureName;
 
   GestureItem(
@@ -38,7 +38,7 @@ class _GestureItemState extends State<GestureItem> {
 
   bool _isGestureTrained;
   bool _isGestureActive;
-  String _gestureTrainingDuration;
+  var _gestureTrainingDuration;
   String _gestureName;
 
   _GestureItemState(
@@ -87,17 +87,17 @@ class _GestureItemState extends State<GestureItem> {
                   ),
               ),
             ),
-            const ListTile(
-              leading: Icon(Icons.grade),
-              title: Text('The Enchanted Nightingale'),
-              subtitle: Text('Music by Julie Gable. Lyrics by Sidney Stein.'),
-            ),
+            // const ListTile(
+            //   leading: Icon(Icons.grade),
+            //   title: Text('The Enchanted Nightingale'),
+            //   subtitle: Text('Music by Julie Gable. Lyrics by Sidney Stein.'),
+            // ),
             ButtonTheme.bar( // make buttons use the appropriate styles for cards
               child: ButtonBar(
                 children: <Widget>[
                   FlatButton(
                     child: const Text('ON/OFF'),
-                    onPressed: () => setState(() { _isGestureActive = !_isGestureActive; }),
+                    onPressed: !_isGestureTrained ? null : () => setState(() { _isGestureActive = !_isGestureActive; }),
                   ),
                   FlatButton(
                     child: const Text('TRAIN'),
