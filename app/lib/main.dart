@@ -45,6 +45,8 @@ class _MyHomePageState extends State<HomePage> {
   /// Device
   BluetoothDevice device;
   bool deviceFound = false;
+  bool sensorConnected = false;
+  DeviceIdentifier gaitSensorId;
   bool get isConnected => (device != null);
   var deviceConnection;
   var deviceStateSubscription;
@@ -52,7 +54,7 @@ class _MyHomePageState extends State<HomePage> {
   //Map<Guid, StreamSubscription> valueChangedSubscriptions = {};
   BluetoothDeviceState deviceState = BluetoothDeviceState.disconnected;
 
-  void _scanForDeviceAndConnect() {
+  void _scanForDevice() {
     _scanSubscription = _flutterBlue
     .scan(
       timeout: const Duration(seconds: 5),
@@ -66,18 +68,65 @@ class _MyHomePageState extends State<HomePage> {
       print('serviceData: ${scanResult.advertisementData.serviceData}');
 
       bool sensorFound = (scanResult.advertisementData.localName == "GaitSensor1");
-
+      DeviceIdentifier id = scanResult.device.id;
       setState(() {
-        scanResults[scanResult.device.id] = scanResult;
-        deviceFound = sensorFound;
+        scanResults[id] = scanResult;
+        deviceFound = deviceFound || sensorFound;
+        gaitSensorId = sensorFound ? id : gaitSensorId;
+        if(sensorFound) {
+          device = scanResult.device;
+        }
       });
     }, onDone: _stopScan);
 
   }
 
+  void _establishConnection() async {
+    // Connect to device
+    deviceConnection = _flutterBlue
+    .connect(device, timeout: const Duration(seconds: 10))
+    .listen(
+      null,
+      onDone: _disconnect,
+    );
+
+    // Update the connection state immediately
+    device.state.then((s) {
+      setState(() {
+        deviceState = s;
+      });
+    });
+
+    // Subscribe to connection changes
+    deviceStateSubscription = device.onStateChanged().listen((s) {
+      setState(() {
+        deviceState = s;
+      });
+      if (s == BluetoothDeviceState.connected) {
+        device.discoverServices().then((s) {
+          setState(() {
+            services = s;
+            sensorConnected = true;
+          });
+        });
+      }
+    });
+  }
+
   void _stopScan() {
     _scanSubscription?.cancel();
     _scanSubscription = null;
+  }
+
+   _disconnect() {
+    // Remove all value changed listeners
+    deviceStateSubscription?.cancel();
+    deviceStateSubscription = null;
+    deviceConnection?.cancel();
+    deviceConnection = null;
+    setState(() {
+      device = null;
+    });
   }
 
   @override
@@ -98,13 +147,28 @@ class _MyHomePageState extends State<HomePage> {
   }
 
   @override
+  void dispose() {
+    _stateSubscription?.cancel();
+    _stateSubscription = null;
+    _scanSubscription?.cancel();
+    _scanSubscription = null;
+    deviceConnection?.cancel();
+    deviceConnection = null;
+    super.dispose();
+    setState(() {
+      device = null;
+      sensorConnected = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) { //reruns when setState
     return Scaffold(
       appBar: AppBar( // MyHomePage object in App.build 's title ...?
         title: Text(widget.title),
       ),
       body: Center( 
-        child: isConnected 
+        child: sensorConnected 
         ? ListView( //list of children vertically, fills parent, 
           //mainAxisAlignment: MainAxisAlignment.center, //mainAxis here is vertical axis, cross is hori
             children: <Widget>[
@@ -145,7 +209,7 @@ class _MyHomePageState extends State<HomePage> {
                     color: Colors.lightBlue,
                     disabledColor: Colors.grey,
                     textColor: Colors.white,
-                    onPressed: !deviceFound ? null : () => {},
+                    onPressed: !deviceFound ? null : () => _establishConnection(),
                   ),
                   RaisedButton.icon(
                     icon: Icon(Icons.autorenew) ,
@@ -153,13 +217,13 @@ class _MyHomePageState extends State<HomePage> {
                     color: Colors.lightBlue,
                     disabledColor: Colors.grey,
                     textColor: Colors.white,
-                    onPressed: state != BluetoothState.on ? null : () => _scanForDeviceAndConnect(),
+                    onPressed: state != BluetoothState.on ? null : () => _scanForDevice(),
                   ),
                 ]
               ),
             ),
           ),
-      ),
+        ),
     );
   }
 }
