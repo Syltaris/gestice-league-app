@@ -1,10 +1,27 @@
 import 'package:flutter/material.dart';
 
+import 'package:app/trainingPage.dart';
+
 class GestureItem extends StatefulWidget { 
-  //GestureItem({Key key, this.title}) : super(key: key);
+  bool _isGestureTrained;
+  bool _isGestureActive;
+  String _gestureTrainingDuration;
+  String _gestureName;
+
+  GestureItem(
+    this._isGestureTrained,
+    this._isGestureActive,
+    this._gestureTrainingDuration,
+    this._gestureName
+  );
 
   @override
-  _GestureItemState createState() => _GestureItemState();
+  _GestureItemState createState() => _GestureItemState(
+    _isGestureTrained,
+    _isGestureActive,
+    _gestureTrainingDuration,
+    _gestureName
+  );
 }
 
 /*
@@ -19,9 +36,27 @@ class _GestureItemState extends State<GestureItem> {
 
   bool _isEditingName = false;
 
+  bool _isGestureTrained;
+  bool _isGestureActive;
+  String _gestureTrainingDuration;
+  String _gestureName;
 
-  bool _isGestureActive = false;
-  String _gestureName = "Gesture Name";
+  _GestureItemState(
+    this._isGestureTrained,
+    this._isGestureActive,
+    this._gestureTrainingDuration,
+    this._gestureName
+  );
+
+  void _pushTraining() {
+    Navigator.of(context).push(
+      new MaterialPageRoute<void>(
+        builder: (BuildContext context) {
+          return TrainingPage(_gestureName, _isGestureTrained, _gestureTrainingDuration);
+        },
+      )
+    );
+  }
 
   @override
   Widget build(BuildContext context) { //reruns when setState
@@ -66,7 +101,7 @@ class _GestureItemState extends State<GestureItem> {
                   ),
                   FlatButton(
                     child: const Text('TRAIN'),
-                    onPressed: () { /* ... */ },
+                    onPressed: () => _pushTraining(),
                   ),
                 ],
               ),

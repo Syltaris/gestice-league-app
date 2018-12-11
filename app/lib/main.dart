@@ -26,7 +26,8 @@ class HomePage extends StatefulWidget {
 }
 
 /*
-  Needs to take in a list of mini widgets, each representing a gesture
+  Needs to take in a list of mini widgets, each representing a gesture.
+  Gesture list to map!
 */
 class _MyHomePageState extends State<HomePage> {
   int _counter = 0;
@@ -47,15 +48,27 @@ class _MyHomePageState extends State<HomePage> {
         child: Column( //list of children vertically, fills parent, 
           mainAxisAlignment: MainAxisAlignment.center, //mainAxis here is vertical axis, cross is hori
           children: <Widget>[
-            GestureItem(),
+            GestureItem( 
+              false,
+              false,
+              "5 mins",
+              "Telekineseis"
+            ),
+            GestureItem( 
+              true,
+              true,
+              "15 mins",
+              "Woohoo!"
+            ),
+            GestureItem( 
+              false,
+              false,
+              "0 mins",
+              "New Superpower"
+            ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
