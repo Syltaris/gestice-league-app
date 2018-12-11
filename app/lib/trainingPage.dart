@@ -68,7 +68,7 @@ class _TrainingPageState extends State<TrainingPage> {
                     ),
                     RaisedButton.icon(
                       icon: Icon(Icons.play_arrow) ,
-                      label: const Text('RESUME TRAINING'),
+                      label: Text(_trainingDuration > 0 ? 'RESUME TRAINING' : 'BEGIN TRAINING'),
                       color: Colors.green,
                       disabledColor: Colors.grey,
                       textColor: Colors.white,
@@ -85,3 +85,18 @@ class _TrainingPageState extends State<TrainingPage> {
     );
   }
 }
+
+// class TrainerPage extends StatefulWidget { 
+//   String title;
+//   bool trained;
+//   var trainingDuration;
+
+//   TrainerPage(this.title, this.trained, this.trainingDuration);
+
+//   @override
+//   _TrainerPageState createState() => _TrainerPageState(this.trained, this.trainingDuration);
+// }
+
+// class _TrainerPageState extends State<TrainerPage> {
+
+// }
