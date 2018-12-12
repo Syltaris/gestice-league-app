@@ -36,6 +36,8 @@ class _MyHomePageState extends State<HomePage> {
 
   /// Scanning
   var _scanSubscription;
+  Map<DeviceIdentifier, ScanResult> scanResults = new Map();
+  bool isScanning = false;
 
   /// State
   var _stateSubscription;
@@ -50,15 +52,7 @@ class _MyHomePageState extends State<HomePage> {
   var deviceConnection;
   var deviceStateSubscription;
   List<BluetoothService> services = new List();
-
-  // BluetoothCharacteristics 
-  BluetoothCharacteristic accXChar;
-  BluetoothCharacteristic accYChar;
-  BluetoothCharacteristic accZChar;
-  BluetoothCharacteristic gyrXChar;
-  BluetoothCharacteristic gyrYChar;
-  BluetoothCharacteristic gyrZChar;
-
+  List<BluetoothCharacteristic> characs = new List();
   //Map<Guid, StreamSubscription> valueChangedSubscriptions = {};
   BluetoothDeviceState deviceState = BluetoothDeviceState.disconnected;
 
@@ -76,34 +70,36 @@ class _MyHomePageState extends State<HomePage> {
     _scanSubscription = _flutterBlue
     .scan(
       timeout: const Duration(seconds: 5),
+      /*withServices: [
+          new Guid('0000180F-0000-1000-8000-00805F9B34FB')
+        ]*/
     )
     .listen((scanResult) {
       // print('localName: ${scanResult.advertisementData.localName}');
       // print('manufacturerData: ${scanResult.advertisementData.manufacturerData}');
       // print('serviceData: ${scanResult.advertisementData.serviceData}');
+
       bool sensorFound = (scanResult.advertisementData.localName == "GaitSensor1");
       DeviceIdentifier id = scanResult.device.id;
       setState(() {
+        scanResults[id] = scanResult;
         deviceFound = deviceFound || sensorFound;
+        gaitSensorId = sensorFound ? id : gaitSensorId;
         if(sensorFound) {
           device = scanResult.device;
           print('Found!');
         }
       });
     }, onDone: _stopScan);
+
   }
 
   void _establishConnection() async {
     // Connect to device
     deviceConnection = _flutterBlue
     .connect(device, timeout: const Duration(seconds: 10))
-    .listen((s) {
-      if(s == BluetoothDeviceState.connected) {
-        setState(() {       
-          sensorConnected = true;
-        });
-      }
-    },
+    .listen(
+      null,
       onDone: _disconnect,
     );
 
@@ -120,39 +116,33 @@ class _MyHomePageState extends State<HomePage> {
           deviceState = s;
         });
         if (s == BluetoothDeviceState.connected) {
-          device.discoverServices().then((services) {
-            setState(() { //looking for 2 specific service and 2 characteristic addresses
-              services.map((s) => {
-                if(s.id.substring(4, 9) == "0010") { //WARNING: perform the checks here pls, for each char 
-                  accXChar = s.characteristics[0];
-                  accYChar = s.characteristics[1];
-                  accZChar = s.characteristics[2];
-                } else if (s.id.substring(4,9) == "1101") {
-                  gyrXChar = s.characteristics[0];
-                  gyrYChar = s.characteristics[1];
-                  gyrZChar = s.characteristics[2];
-                } 
-              })
+          device.discoverServices().then((s) {
+            setState(() {
+              characs = s[0].characteristics;
+
+              sensorConnected = true;
             });
+
             _printChars(s);
           });
       }
     });
   }
 
-  _printChars() async {
-    List<int> value = await device.readCharacteristic(accXChar);
-    print(value);
-    value = await device.readCharacteristic(accYChar);
-    print(value);
-    value = await device.readCharacteristic(accZChar);
-    print(value);
-    value = await device.readCharacteristic(gyrXChar);
-    print(value);
-    value = await device.readCharacteristic(gyrYChar);
-    print(value);
-    value = await device.readCharacteristic(gyrZChar);
-    print(value);
+  _printChars(var services) async {
+    var characteristics = services[0].characteristics;
+    for(BluetoothCharacteristic c in characteristics) {
+        List<int> value = await device.readCharacteristic(c);
+        print(value);
+    }
+    print('should have liao');
+
+    characteristics = services[1].characteristics;
+    for(BluetoothCharacteristic c in characteristics) {
+        List<int> value = await device.readCharacteristic(c);
+        print(value);
+    }
+    print('should have leh');
   }
 
   _readCharacteristic(BluetoothCharacteristic c) async {
@@ -209,12 +199,12 @@ class _MyHomePageState extends State<HomePage> {
     setState(() {
       device = null;
       sensorConnected = false;
-      deviceFound = false;
     });
   }
 
   @override
   Widget build(BuildContext context) { //reruns when setState
+    var temp = characs != null && sensorConnected ? characs[0].uuid : 'neh';
     return Scaffold(
       appBar: AppBar( // MyHomePage object in App.build 's title ...?
         title: Text(widget.title),
@@ -224,6 +214,7 @@ class _MyHomePageState extends State<HomePage> {
         ? ListView( //list of children vertically, fills parent, 
           //mainAxisAlignment: MainAxisAlignment.center, //mainAxis here is vertical axis, cross is hori
             children: <Widget>[
+              characs != null ? Text("$temp") : Text("nullh"),
               Text("AX: $gaX, AY: $gaY, AZ: $gaZ, GX: $ggX, GY: $ggY, GZ: $ggZ"),
               GestureItem( 
                 false,
