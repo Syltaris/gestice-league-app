@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
 import 'package:app/gestureList.dart';
+
 
 void main() => runApp(MyApp());
 
@@ -121,42 +123,40 @@ class _MyHomePageState extends State<HomePage> {
         });
         if (s == BluetoothDeviceState.connected) {
           device.discoverServices().then((services) {
-            setState(() { //looking for 2 specific service and 2 characteristic addresses
-              services.map((s) => {
-                if(s.id.substring(4, 9) == "0010") { //WARNING: perform the checks here pls, for each char 
-                  accXChar = s.characteristics[0];
-                  accYChar = s.characteristics[1];
-                  accZChar = s.characteristics[2];
-                } else if (s.id.substring(4,9) == "1101") {
-                  gyrXChar = s.characteristics[0];
-                  gyrYChar = s.characteristics[1];
-                  gyrZChar = s.characteristics[2];
-                } 
-              })
-            });
-            _printChars(s);
+            for(BluetoothService se in services) {
+              if(se == null) {continue;}
+              if(se.uuid.toString().substring(4, 8) == "0010") { //WARNING: perform the checks here pls, for each char 
+                accXChar = se.characteristics[0];
+                accYChar = se.characteristics[1];
+                accZChar = se.characteristics[2];
+              } else if (se.uuid.toString().substring(4,8) == "1101") {
+                gyrXChar = se.characteristics[0];
+                gyrYChar = se.characteristics[1];
+                gyrZChar = se.characteristics[2];
+              } 
+            };
+            setState(() {});
+            //_printChars();
           });
       }
     });
   }
 
-  _printChars() async {
-    List<int> value = await device.readCharacteristic(accXChar);
-    print(value);
-    value = await device.readCharacteristic(accYChar);
-    print(value);
-    value = await device.readCharacteristic(accZChar);
-    print(value);
-    value = await device.readCharacteristic(gyrXChar);
-    print(value);
-    value = await device.readCharacteristic(gyrYChar);
-    print(value);
-    value = await device.readCharacteristic(gyrZChar);
-    print(value);
+  _readCharacteristic(BluetoothCharacteristic c) async {
+    List<int> values = await device.readCharacteristic(c);
+    Uint8List buffer = Uint8List.fromList(values);
+    var bdata = new ByteData.view(buffer.buffer);
+    int huh = bdata.getInt32(0);
+    return huh;
   }
 
-  _readCharacteristic(BluetoothCharacteristic c) async {
-    await device.readCharacteristic(c);
+  _printChars() async {
+    gaX = await _readCharacteristic(accXChar);
+    gaY = await _readCharacteristic(accYChar);
+    gaZ = await _readCharacteristic(accZChar);
+    ggX = await _readCharacteristic(gyrXChar);
+    ggY = await _readCharacteristic(gyrYChar);
+    ggZ = await _readCharacteristic(gyrZChar);
     setState(() {});
   }
 
@@ -225,6 +225,14 @@ class _MyHomePageState extends State<HomePage> {
           //mainAxisAlignment: MainAxisAlignment.center, //mainAxis here is vertical axis, cross is hori
             children: <Widget>[
               Text("AX: $gaX, AY: $gaY, AZ: $gaZ, GX: $ggX, GY: $ggY, GZ: $ggZ"),
+              RaisedButton.icon(
+                  icon: Icon(Icons.add) ,
+                  label: const Text('CHECK'),
+                  color: Colors.lightBlue,
+                  disabledColor: Colors.grey,
+                  textColor: Colors.white,
+                  onPressed: !deviceFound ? null : () => _printChars(),
+                ),
               GestureItem( 
                 false,
                 false,
