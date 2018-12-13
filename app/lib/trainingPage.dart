@@ -2,26 +2,38 @@ import 'package:flutter/material.dart';
 
 class TrainingPage extends StatefulWidget { 
   String title;
-  bool trained;
+  bool isTrained;
   var trainingDuration;
+  List<int> sensorData;
 
-  TrainingPage(this.title, this.trained, this.trainingDuration);
+  TrainingPage({
+    Key key,
+    this.title, 
+    this.isTrained, 
+    this.trainingDuration, 
+    this.sensorData
+  }) : super(key: key);
 
   @override
-  _TrainingPageState createState() => _TrainingPageState(this.trained, this.trainingDuration);
+  _TrainingPageState createState() => _TrainingPageState();
 }
 
 /*
 
 */
 class _TrainingPageState extends State<TrainingPage> {
-  bool _isTrained; //need to bring out from root data
-  var _trainingDuration;
-
-  _TrainingPageState(this._isTrained, this._trainingDuration);
-
   @override
   Widget build(BuildContext context) { //reruns when setState
+    int _trainingDuration = widget.trainingDuration;
+    var sensorData = widget.sensorData;
+
+    var gaX = widget.sensorData[0];
+    var gaY = widget.sensorData[1];
+    var gaZ = widget.sensorData[2];
+    var ggX = widget.sensorData[3];
+    var ggY = widget.sensorData[4];
+    var ggZ = widget.sensorData[5];
+
     return Scaffold(
       appBar: AppBar( // MyHomePage object in App.build 's title ...?
         title: Text(widget.title),
@@ -33,13 +45,13 @@ class _TrainingPageState extends State<TrainingPage> {
             Expanded(
               child: Padding(
                 padding: EdgeInsets.all(50.0),
-                child: _isTrained 
+                child: widget.isTrained 
                 ? Text('You have already trained this superpower!',
                     style: TextStyle(
                       fontSize: 20,
                     )
                   ) 
-                : _trainingDuration > 0 
+                : widget.trainingDuration > 0 
                 ? Text('You have been training this superpower for $_trainingDuration seconds. Would you like to resume training?',
                     style: TextStyle(
                       fontSize: 20,
@@ -64,21 +76,21 @@ class _TrainingPageState extends State<TrainingPage> {
                       color: Colors.orange,
                       disabledColor: Colors.grey,
                       textColor: Colors.white,
-                      onPressed: _isTrained ? null : () => {},
+                      onPressed: widget.isTrained ? null : () => {},
                     ),
                     RaisedButton.icon(
                       icon: Icon(Icons.play_arrow) ,
-                      label: Text(_trainingDuration > 0 ? 'RESUME TRAINING' : 'BEGIN TRAINING'),
+                      label: Text(widget.trainingDuration > 0 ? 'RESUME TRAINING' : 'BEGIN TRAINING'),
                       color: Colors.green,
                       disabledColor: Colors.grey,
                       textColor: Colors.white,
-                      onPressed: _isTrained ? null : () => {},
+                      onPressed: widget.isTrained ? null : () => {},
                     ),
                   ],
                 ),
               ),
-            )
-            
+            ),
+            Text("AX: $gaX, AY: $gaY, AZ: $gaZ, GX: $ggX, GY: $ggY, GZ: $ggZ Sensor: $sensorData"),
           ]
         )
       )

@@ -75,10 +75,10 @@ class _MyHomePageState extends State<HomePage> {
   var gyrYCharSub;
   var gyrZCharSub;
 
-
   var valuesSubscription;
 
   // Gait sensor data
+  List<int> sensorData = new List<int>(6);
   var gaX = 0; var gaY = 0; var gaZ = 0; var ggX = 0; var ggY = 0; var ggZ = 0;
 
   List<Gesture> _gesturesList = <Gesture>[
@@ -177,12 +177,12 @@ class _MyHomePageState extends State<HomePage> {
             _setAllNotifyValues();
 
             //register handlers
-            accXCharSub = device.onValueChanged(accXChar).listen((v) { setState(() {gaX = _convertDataToInt(v); }); });
-            accYCharSub = device.onValueChanged(accYChar).listen((v) { setState(() {gaY = _convertDataToInt(v); }); });
-            accZCharSub = device.onValueChanged(accZChar).listen((v) { setState(() {gaZ = _convertDataToInt(v); }); });
-            gyrXCharSub = device.onValueChanged(gyrXChar).listen((v) { setState(() {ggX = _convertDataToInt(v); }); });
-            gyrYCharSub = device.onValueChanged(gyrYChar).listen((v) { setState(() {ggY = _convertDataToInt(v); }); });
-            gyrZCharSub = device.onValueChanged(gyrZChar).listen((v) { setState(() {ggZ = _convertDataToInt(v); }); });
+            accXCharSub = device.onValueChanged(accXChar).listen((v) { setState(() {gaX = _convertDataToInt(v); sensorData[0] = _convertDataToInt(v); }); });
+            accYCharSub = device.onValueChanged(accYChar).listen((v) { setState(() {gaY = _convertDataToInt(v); sensorData[1] = _convertDataToInt(v); }); });
+            accZCharSub = device.onValueChanged(accZChar).listen((v) { setState(() {gaZ = _convertDataToInt(v); sensorData[2] = _convertDataToInt(v); }); });
+            gyrXCharSub = device.onValueChanged(gyrXChar).listen((v) { setState(() {ggX = _convertDataToInt(v); sensorData[3] = _convertDataToInt(v); }); });
+            gyrYCharSub = device.onValueChanged(gyrYChar).listen((v) { setState(() {ggY = _convertDataToInt(v); sensorData[4] = _convertDataToInt(v); }); });
+            gyrZCharSub = device.onValueChanged(gyrZChar).listen((v) { setState(() {ggZ = _convertDataToInt(v); sensorData[5] = _convertDataToInt(v); }); });
 
             setState(() {
               _isLoading = false;
@@ -293,17 +293,18 @@ class _MyHomePageState extends State<HomePage> {
 
   _buildGesturesList() {
     return _gesturesList.map((x) => GestureItem(
-      x.isGestureTrained,
-      x.isGestureActive,
-      x.gestureTrainingDuration,
-      x.gestureName,
+      isGestureTrained: x.isGestureTrained,
+      isGestureActive: x.isGestureActive,
+      gestureTrainingDuration: x.gestureTrainingDuration,
+      gestureName: x.gestureName,
+      sensorData: sensorData //hate this way to pass down IMU data, super hacky
     )).toList();
   }
 
   @override
   Widget build(BuildContext context) { //reruns when setState
     List<Widget> tiles = new List<Widget>();
-    // tiles.add(Text("AX: $gaX, AY: $gaY, AZ: $gaZ, GX: $ggX, GY: $ggY, GZ: $ggZ"));
+    tiles.add(Text("AX: $gaX, AY: $gaY, AZ: $gaZ, GX: $ggX, GY: $ggY, GZ: $ggZ Sensor:$sensorData"));
     // tiles.add(
     //   RaisedButton.icon(
     //     icon: Icon(Icons.add) ,
