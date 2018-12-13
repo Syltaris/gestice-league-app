@@ -181,6 +181,11 @@ class _MyHomePageState extends State<HomePage> {
             //   setState(() {});
             // });
 
+            valuesSubscription = new Timer.periodic(
+              Duration(milliseconds: 100),
+              (Timer t) => _printChars()
+            );
+
             setState(() {
               _isLoading = false;
               sensorConnected = true;
@@ -222,7 +227,7 @@ class _MyHomePageState extends State<HomePage> {
   }
 
   _setNotifyValue(BluetoothCharacteristic c, bool x) async {
-    await device.setNotifyValue(c, x);
+    device != null ? await device.setNotifyValue(c, x) : null;
   }
 
   _readCharacteristic(BluetoothCharacteristic c) async {
