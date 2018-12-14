@@ -289,8 +289,8 @@ class _MyHomePageState extends State<HomePage> {
       //create list and write to file
       output = [
         Gesture(0,false, false, 0,'New Superpower'),
-        Gesture(0,false, false, 0,'New Superpower'),
-        Gesture(0,false, false, 0,'New Superpower'),
+        Gesture(1,false, false, 0,'New Superpower'),
+        Gesture(2,false, false, 0,'New Superpower'),
       ];
       String initJson = json.encode(output);
     } else {
@@ -335,7 +335,22 @@ class _MyHomePageState extends State<HomePage> {
     });
   }
 
+  /*
+    Data mutation methods
+  */
+  // inefficient maybe but simle
+  _updateGesture(int index, Gesture newGesture) {
+    setState(() {
+      _gesturesList[index] = newGesture;
+    });
+    _saveDataChanges();
+  }
 
+  _deleteData() async {
+    final path = await _localPath;
+    File file = new File('$path/user_data.json');
+    return file.delete();
+  }
 
   @override
   void dispose() {
@@ -366,6 +381,7 @@ class _MyHomePageState extends State<HomePage> {
       sensorData: sensorData,
       toggleFileWrite: toggleFileWrite,
       saveDataChanges: _saveDataChanges,
+      updateGesture : _updateGesture,
     )).toList();
   }
 
@@ -393,6 +409,11 @@ class _MyHomePageState extends State<HomePage> {
             icon: Icon(Icons.bluetooth_disabled),
             tooltip: 'Disconnect',
             onPressed: _disconnect,
+          ),
+          IconButton(
+            icon: Icon(Icons.clear),
+            tooltip: 'Delete Data',
+            onPressed: _deleteData,
           ),
         ]
       ),

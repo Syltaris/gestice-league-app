@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:app/main.dart';
 import 'package:app/trainingPage.dart';
 
 class GestureItem extends StatefulWidget { 
@@ -11,6 +12,7 @@ class GestureItem extends StatefulWidget {
   List<int> sensorData;
   var toggleFileWrite;
   var saveDataChanges;
+  var updateGesture;
 
   GestureItem({
     Key key,
@@ -22,6 +24,7 @@ class GestureItem extends StatefulWidget {
     this.sensorData,
     this.toggleFileWrite,
     this.saveDataChanges,
+    this.updateGesture
   }) : super(key:key);
 
   @override
@@ -75,7 +78,19 @@ class _GestureItemState extends State<GestureItem> {
                       text: widget.gestureName,
                     ),
                     onChanged: (v) => setState(() { widget.gestureName = v; }),
-                    onEditingComplete: () => setState(() { _isEditingName = false; widget.saveDataChanges(); }),
+                    onEditingComplete: () => setState(() { 
+                      _isEditingName = false; 
+                      widget.updateGesture(
+                        widget.gestureIndex, 
+                        new Gesture(
+                          widget.gestureIndex,
+                          widget.isGestureTrained,
+                          widget.isGestureActive,
+                          widget.gestureTrainingDuration,
+                          widget.gestureName
+                        )
+                      ); 
+                    }),
                   )
                 : Text(widget.gestureName,
                     style: TextStyle(
@@ -95,7 +110,19 @@ class _GestureItemState extends State<GestureItem> {
                 children: <Widget>[
                   FlatButton(
                     child: const Text('ON/OFF'),
-                    onPressed: !widget.isGestureTrained ? null : () => setState(() { widget.isGestureActive = !widget.isGestureActive; widget.saveDataChanges(); }),
+                    onPressed: !widget.isGestureTrained ? null : () => setState(() { 
+                      widget.isGestureActive = !widget.isGestureActive; 
+                      widget.updateGesture(
+                        widget.gestureIndex, 
+                        new Gesture(
+                          widget.gestureIndex,
+                          widget.isGestureTrained,
+                          widget.isGestureActive,
+                          widget.gestureTrainingDuration,
+                          widget.gestureName
+                        )
+                      ); 
+                    }),
                   ),
                   FlatButton(
                     child: const Text('TRAIN'),
