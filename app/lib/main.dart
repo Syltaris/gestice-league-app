@@ -63,10 +63,7 @@ class _MyHomePageState extends State<HomePage> {
 
   // BluetoothCharacteristics PUT INTO LISTS
   BluetoothCharacteristic accChar;
-  BluetoothCharacteristic gyrChar;
   var accCharSub;
-  var gyrCharSub;
-
   var valuesSubscription;
 
   // Gait sensor data
@@ -155,52 +152,26 @@ class _MyHomePageState extends State<HomePage> {
             if(se == null) {continue;}
             if(se.uuid.toString().substring(4, 8) == "0010") { //WARNING: perform the checks here pls, for each char 
               accChar = se.characteristics[0];
-              gyrChar = se.characteristics[1];
             }
           };
 
           // ensure all chars registered properly before proceeding, else wait
-          if(accChar != null && gyrChar != null) {
-            //_setAllNotifyValues(true);
-
+          if(accChar != null) { // && gyrChar 
+            _setAllNotifyValues(true);
             //register handlers
-            // accCharSub = device.onValueChanged(accChar).listen((v) { 
-            //   List<int> list = _convertDataToIntList(v); 
-            //   // sensorData[0] = list[0]; 
-            //   // sensorData[1] = list[0];
-            //   // sensorData[2] = list[0];
-            //   accData = list;
-            //   setState(() {});
-            // });
-            // gyrCharSub = device.onValueChanged(gyrChar).listen((v) {
-            //   List<int> list = _convertDataToIntList(v);
-            //   // sensorData[3] = list[0]; 
-            //   // sensorData[4] = list[1]; 
-            //   // sensorData[5] = list[2]; 
-            //   gyrData = list;
-            //   setState(() {});
-            // });
-
-            valuesSubscription = new Timer.periodic(
-              Duration(milliseconds: 100),
-              (Timer t) => _printChars()
-            );
-
+            accCharSub = device.onValueChanged(accChar).listen((v) { 
+              accData = _convert2ByteDataToIntList(v.sublist(0,6), 3); 
+              gyrData = _convert4ByteDataToIntList(v.sublist(6,18), 3);
+              setState(() {  });
+            });
             setState(() {
               _isLoading = false;
               sensorConnected = true;
             });
           }
-          //_printChars();
         });
       }
     });
-  }
-
-  _printChars() async {
-    accData = await _readCharacteristic(accChar);
-    gyrData = await _readCharacteristic(gyrChar);
-    setState(() {});
   }
 
   int _convertDataToInt(List<int> values) {
@@ -209,31 +180,41 @@ class _MyHomePageState extends State<HomePage> {
     return bdata.getInt32(0, Endian.little);
   }
 
-  List<int> _convertDataToIntList(List<int> values) {
+  List<int> _convert2ByteDataToIntList(List<int> values, int n) {
     List<int> output = new List<int>();
+    print(values);
+    for(int i = 0; i < n; i++) {
+      Uint8List buffer = Uint8List.fromList(values.sublist(i*2, i*2+2));
+      var bdata = new ByteData.view(buffer.buffer);
+      output.add(bdata.getInt16(0, Endian.big));
+    }
+    return output;
+  }
 
-    for(int i = 0; i < values.length / 4; i++) {
+  List<int> _convert4ByteDataToIntList(List<int> values, int n) {
+    List<int> output = new List<int>();
+    print(values);
+    for(int i = 0; i < n; i++) {
       Uint8List buffer = Uint8List.fromList(values.sublist(i*4, i*4+4));
       var bdata = new ByteData.view(buffer.buffer);
       output.add(bdata.getInt32(0, Endian.big));
     }
-
     return output;
   }
 
   _setAllNotifyValues(bool x) async {
     accChar != null ? await _setNotifyValue(accChar, x) : null;
-    gyrChar != null ? await _setNotifyValue(gyrChar, x) : null;
+    //gyrChar != null ? await _setNotifyValue(gyrChar, x) : null;
   }
 
   _setNotifyValue(BluetoothCharacteristic c, bool x) async {
     device != null ? await device.setNotifyValue(c, x) : null;
   }
 
-  _readCharacteristic(BluetoothCharacteristic c) async {
-    List<int> values = await device.readCharacteristic(c);
-    return _convertDataToIntList(values);
-  }
+  // _readCharacteristic(BluetoothCharacteristic c) async {
+  //   List<int> values = await device.readCharacteristic(c);
+  //   return _convertDataToIntList(values);
+  // }
 
    _disconnect() {
     // Remove all value changed listeners
@@ -300,16 +281,16 @@ class _MyHomePageState extends State<HomePage> {
   Widget build(BuildContext context) { //reruns when setState
     List<Widget> tiles = new List<Widget>();
     tiles.add(Text("ACC: $accData GYR: $gyrData"));
-    tiles.add(
-      RaisedButton.icon(
-        icon: Icon(Icons.add) ,
-        label: const Text('CHECK'),
-        color: Colors.lightBlue,
-        disabledColor: Colors.grey,
-        textColor: Colors.white,
-        onPressed: !deviceFound ? null : () => _printChars(),
-      )
-    );
+    // tiles.add(
+    //   RaisedButton.icon(
+    //     icon: Icon(Icons.add) ,
+    //     label: const Text('CHECK'),
+    //     color: Colors.lightBlue,
+    //     disabledColor: Colors.grey,
+    //     textColor: Colors.white,
+    //     onPressed: !deviceFound ? null : () => _printChars(),
+    //   )
+    // );
     tiles.addAll(_buildGesturesList());
 
     return Scaffold(
