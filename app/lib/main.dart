@@ -291,20 +291,34 @@ class _MyHomePageState extends State<HomePage> {
         Gesture(0,false, false, 0,'New Superpower'),
         Gesture(1,false, false, 0,'New Superpower'),
         Gesture(2,false, false, 0,'New Superpower'),
+        Gesture(3,false, false, 0,'New Superpower'),
+        Gesture(4,false, false, 0,'New Superpower'),
       ];
       String initJson = json.encode(output);
     } else {
       //load gestures
       String oldJson = await file.readAsString();
       print(oldJson);
-      List gestures = json.decode(oldJson);
-      for(Object g in gestures) {
-        output.add(new Gesture.fromJson(g));
-        print(g);
+      if(oldJson == null || oldJson.length < 3) { //if file corrupt 
+        output = [
+          Gesture(0,false, false, 0,'New Superpower'),
+          Gesture(1,false, false, 0,'New Superpower'),
+          Gesture(2,false, false, 0,'New Superpower'),
+          Gesture(3,false, false, 0,'New Superpower'),
+          Gesture(4,false, false, 0,'New Superpower'),
+        ];
+      } else {
+        List gestures = json.decode(oldJson);
+        for(Object g in gestures) {
+          output.add(new Gesture.fromJson(g));
+          print(g);
+        }
       }
     }
     setState(() {
       _gesturesList = output;
+      print('loaded');
+      print(_gesturesList);
     });
 
     return output;
@@ -371,8 +385,8 @@ class _MyHomePageState extends State<HomePage> {
 
   _buildGesturesList() {
     return _gesturesList == null 
-    ? [new Container()]
-    : _gesturesList?.map((x) => GestureItem(
+    ? [new Text("Something's wrong :/")]
+    : _gesturesList.map((x) => GestureItem(
       gestureIndex: x.gestureIndex,
       isGestureTrained: x.isGestureTrained,
       isGestureActive: x.isGestureActive,
@@ -402,58 +416,71 @@ class _MyHomePageState extends State<HomePage> {
     tiles.addAll(_buildGesturesList());
 
     return Scaffold(
-      appBar: AppBar( // MyHomePage object in App.build 's title ...?
-        title: Text(widget.title),
-        actions: <Widget>[
-           IconButton(
-            icon: Icon(Icons.bluetooth_disabled),
-            tooltip: 'Disconnect',
-            onPressed: _disconnect,
-          ),
-          IconButton(
-            icon: Icon(Icons.clear),
-            tooltip: 'Delete Data',
-            onPressed: _deleteData,
-          ),
-        ]
-      ),
-      body: Stack(
+      appBar: sensorConnected 
+      ? AppBar( // MyHomePage object in App.build 's title ...?
+          title: Text(widget.title),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.bluetooth_disabled),
+              tooltip: 'Disconnect',
+              onPressed: _disconnect,
+            ),
+            IconButton(
+              icon: Icon(Icons.clear),
+              tooltip: 'Delete Data',
+              onPressed: _deleteData,
+            ),
+          ]
+        )
+      : null,
+      body: 
+      Stack(
         children: <Widget>[
-          _isLoading || _writeToFile ? LinearProgressIndicator() : new Container(),
-          Center(
-            child: sensorConnected 
-            ? ListView( //list of children vertically, fills parent, 
-              //mainAxisAlignment: MainAxisAlignment.center, //mainAxis here is vertical axis, cross is hori
-                children: tiles
-              )
-            : Center(
-              child:ButtonTheme.bar( // make buttons use the appropriate styles for cards
-                child: ButtonBar(
-                  alignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    RaisedButton.icon(
-                      icon: Icon(Icons.bluetooth) ,
-                      label: const Text('CONNECT TO DEVICE'),
-                      color: Colors.lightBlue,
-                      disabledColor: Colors.grey,
-                      textColor: Colors.white,
-                      onPressed: !deviceFound ? null : () => _establishConnection(),
-                    ),
-                    RaisedButton.icon(
-                      icon: Icon(Icons.autorenew) ,
-                      label: const Text(''),
-                      color: Colors.lightBlue,
-                      disabledColor: Colors.grey,
-                      textColor: Colors.white,
-                      onPressed: state != BluetoothState.on ? null : () => _scanForDevice(),
-                    ),
-                  ]
+          _isLoading ? LinearProgressIndicator() : new Container(),
+          sensorConnected 
+          ?
+          ListView( 
+            children: tiles
+          )
+          :
+          Column(
+            children: <Widget>[
+              Expanded(
+                child: FittedBox(
+                  fit: BoxFit.contain, // otherwise the logo will be tiny
+                  child: Image.asset('assets/icon/gl-logo2.png'),
                 ),
               ),
-            ),
-          ),
+              Container(
+                margin: const EdgeInsets.only(bottom: 200.0), //TODO: not the best way to do this
+                child: ButtonTheme.bar( // make buttons use the appropriate styles for cards
+                  height: 50.0,
+                  child: ButtonBar(
+                    alignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      IconButton(
+                        icon: Icon(Icons.autorenew) ,
+                        tooltip: 'Scan for Sensor',
+                        color: Colors.lightBlue,
+                        disabledColor: Colors.grey,
+                        onPressed: state != BluetoothState.on ? null : () => _scanForDevice(),
+                      ),
+                      RaisedButton.icon(
+                        icon: Icon(Icons.bluetooth) ,
+                        label: const Text('CONNECT TO SENSOR'),
+                        color: Colors.lightBlue,
+                        disabledColor: Colors.grey,
+                        textColor: Colors.white,
+                        onPressed: !deviceFound ? null : () => _establishConnection(),
+                      ),
+                    ]
+                  ),
+                ),
+              )
+            ]
+          )
         ]
-      ),
+      )
     );
   }
 }
