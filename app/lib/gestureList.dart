@@ -10,6 +10,7 @@ class GestureItem extends StatefulWidget {
   String gestureName;
   List<int> sensorData;
   var toggleFileWrite;
+  var saveDataChanges;
 
   GestureItem({
     Key key,
@@ -20,6 +21,7 @@ class GestureItem extends StatefulWidget {
     this.gestureName,
     this.sensorData,
     this.toggleFileWrite,
+    this.saveDataChanges,
   }) : super(key:key);
 
   @override
@@ -73,7 +75,7 @@ class _GestureItemState extends State<GestureItem> {
                       text: widget.gestureName,
                     ),
                     onChanged: (v) => setState(() { widget.gestureName = v; }),
-                    onEditingComplete: () => setState(() { _isEditingName = false; }),
+                    onEditingComplete: () => setState(() { _isEditingName = false; widget.saveDataChanges(); }),
                   )
                 : Text(widget.gestureName,
                     style: TextStyle(
@@ -93,7 +95,7 @@ class _GestureItemState extends State<GestureItem> {
                 children: <Widget>[
                   FlatButton(
                     child: const Text('ON/OFF'),
-                    onPressed: !widget.isGestureTrained ? null : () => setState(() { widget.isGestureActive = !widget.isGestureActive; }),
+                    onPressed: !widget.isGestureTrained ? null : () => setState(() { widget.isGestureActive = !widget.isGestureActive; widget.saveDataChanges(); }),
                   ),
                   FlatButton(
                     child: const Text('TRAIN'),

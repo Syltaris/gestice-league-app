@@ -1,12 +1,12 @@
 import 'dart:io';
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:app/gestureList.dart';
-
 
 void main() => runApp(MyApp());
 
@@ -17,7 +17,29 @@ class Gesture {
   final int gestureTrainingDuration;
   final String gestureName;
 
-  Gesture(this.gestureIndex, this.isGestureTrained, this.isGestureActive, this.gestureTrainingDuration, this.gestureName);
+  Gesture(
+    this.gestureIndex, 
+    this.isGestureTrained, 
+    this.isGestureActive, 
+    this.gestureTrainingDuration, 
+    this.gestureName
+  );
+
+  Gesture.fromJson(Map<String, dynamic> json)
+    : gestureIndex = json['gestureIndex'],
+      isGestureTrained = json['isGestureTrained'],
+      isGestureActive = json['isGestureActive'],
+      gestureTrainingDuration = json['gestureTrainingDuration'],
+      gestureName = json['gestureName'];
+
+  Map<String, dynamic> toJson() =>
+    {
+      'gestureIndex' : gestureIndex,
+      'isGestureTrained': isGestureTrained,
+      'isGestureActive' : isGestureActive,
+      'gestureTrainingDuration' : gestureTrainingDuration,
+      'gestureName' : gestureName,
+    };
 }
 
 class MyApp extends StatelessWidget {   // This widget is the root of your application.
@@ -77,36 +99,26 @@ class _MyHomePageState extends State<HomePage> {
   bool _writeToFile = false;
   int _gestureIndexToWriteTo = 0;
 
-  List<Gesture> _gesturesList = <Gesture>[
-    Gesture( 
-      0,
-      false,
-      false,
-      5,
-      "Telekineseis"
-    ),
-    Gesture( 
-      1,
-      true,
-      true,
-      15,
-      "Woohoo!"
-    ),
-    Gesture( 
-      2,
-      false,
-      false,
-      0,
-      "New Superpower"
-    ),
-    Gesture( 
-      3,
-      false,
-      false,
-      0,
-      "New Superpower"
-    )
-  ];
+  List<Gesture> _gesturesList;
+
+  @override
+  void initState() {
+    super.initState();
+    // Immediately get the state of FlutterBlue
+    _flutterBlue.state.then((s) {
+      setState(() {
+        state = s;
+      });
+    });
+    // Subscribe to state changes
+    _stateSubscription = _flutterBlue.onStateChanged().listen((s) {
+      setState(() {
+        state = s;
+      });
+    });
+
+    _loadGesturesFromFile();
+  }
 
   /* 
     Bluetooth connection and data synchronization methods.
@@ -175,7 +187,7 @@ class _MyHomePageState extends State<HomePage> {
               gyrData = _convert4ByteDataToIntList(v.sublist(6,18), 3);
               if(_writeToFile) { _writeData(_gestureIndexToWriteTo);}
 
-              setState(() {  });
+              //setState(() {  });
             });
             setState(() {
               _isLoading = false;
@@ -266,6 +278,47 @@ class _MyHomePageState extends State<HomePage> {
     return output;
   }
 
+  Future<List<Gesture>> _loadGesturesFromFile() async {
+    List<Gesture> output = [];
+    final path = await _localPath;
+    File file = new File('$path/user_data.json');
+    bool fileExists = await file.exists();
+    if ( !fileExists ) {
+      print('creating file...');
+      await file.create();
+      //create list and write to file
+      output = [
+        Gesture(0,false, false, 0,'New Superpower'),
+        Gesture(0,false, false, 0,'New Superpower'),
+        Gesture(0,false, false, 0,'New Superpower'),
+      ];
+      String initJson = json.encode(output);
+    } else {
+      //load gestures
+      String oldJson = await file.readAsString();
+      print(oldJson);
+      List gestures = json.decode(oldJson);
+      for(Object g in gestures) {
+        output.add(new Gesture.fromJson(g));
+        print(g);
+      }
+    }
+    setState(() {
+      _gesturesList = output;
+    });
+
+    return output;
+  }
+
+  _saveDataChanges() async {
+    String toFile = json.encode(_gesturesList);
+    final path = await _localPath;
+    File file = new File('$path/user_data.json');
+    await file.writeAsString(toFile);
+    print('changes saved!');
+    print(toFile);
+  }
+
   _writeData(int index) async {
     final file = await _localFileForGesture(index);
     await file.writeAsString("${accData[0]},${accData[1]},${accData[2]},${gyrData[0]},${gyrData[1]},${gyrData[2]},\n", 
@@ -282,22 +335,7 @@ class _MyHomePageState extends State<HomePage> {
     });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    // Immediately get the state of FlutterBlue
-    _flutterBlue.state.then((s) {
-      setState(() {
-        state = s;
-      });
-    });
-    // Subscribe to state changes
-    _stateSubscription = _flutterBlue.onStateChanged().listen((s) {
-      setState(() {
-        state = s;
-      });
-    });
-  }
+
 
   @override
   void dispose() {
@@ -317,21 +355,24 @@ class _MyHomePageState extends State<HomePage> {
   }
 
   _buildGesturesList() {
-    return _gesturesList.map((x) => GestureItem(
+    return _gesturesList == null 
+    ? [new Container()]
+    : _gesturesList?.map((x) => GestureItem(
       gestureIndex: x.gestureIndex,
       isGestureTrained: x.isGestureTrained,
       isGestureActive: x.isGestureActive,
       gestureTrainingDuration: x.gestureTrainingDuration,
       gestureName: x.gestureName,
       sensorData: sensorData,
-      toggleFileWrite: toggleFileWrite
+      toggleFileWrite: toggleFileWrite,
+      saveDataChanges: _saveDataChanges,
     )).toList();
   }
 
   @override
   Widget build(BuildContext context) { //reruns when setState
     List<Widget> tiles = new List<Widget>();
-    tiles.add(Text("ACC: $accData GYR: $gyrData"));
+    //tiles.add(Text("ACC: $accData GYR: $gyrData"));
     // tiles.add(
     //   RaisedButton.icon(
     //     icon: Icon(Icons.add) ,
