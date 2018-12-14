@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'package:app/gestureList.dart';
 
@@ -9,12 +11,13 @@ import 'package:app/gestureList.dart';
 void main() => runApp(MyApp());
 
 class Gesture {
+  final int gestureIndex;
   final bool isGestureTrained;
   final bool isGestureActive;
   final int gestureTrainingDuration;
   final String gestureName;
 
-  Gesture(this.isGestureTrained, this.isGestureActive, this.gestureTrainingDuration, this.gestureName);
+  Gesture(this.gestureIndex, this.isGestureTrained, this.isGestureActive, this.gestureTrainingDuration, this.gestureName);
 }
 
 class MyApp extends StatelessWidget {   // This widget is the root of your application.
@@ -61,7 +64,6 @@ class _MyHomePageState extends State<HomePage> {
   var deviceStateSubscription;
   List<BluetoothService> services = new List();
 
-  // BluetoothCharacteristics PUT INTO LISTS
   BluetoothCharacteristic accChar;
   var accCharSub;
   var valuesSubscription;
@@ -71,28 +73,34 @@ class _MyHomePageState extends State<HomePage> {
   List<int> accData = new List<int>(6);
   List<int> gyrData = new List<int>(6);
 
-  var gaX = 0; var gaY = 0; var gaZ = 0; var ggX = 0; var ggY = 0; var ggZ = 0;
+  // File state
+  bool _writeToFile = false;
+  int _gestureIndexToWriteTo = 0;
 
   List<Gesture> _gesturesList = <Gesture>[
     Gesture( 
+      0,
       false,
       false,
       5,
       "Telekineseis"
     ),
     Gesture( 
+      1,
       true,
       true,
       15,
       "Woohoo!"
     ),
     Gesture( 
+      2,
       false,
       false,
       0,
       "New Superpower"
     ),
     Gesture( 
+      3,
       false,
       false,
       0,
@@ -100,6 +108,9 @@ class _MyHomePageState extends State<HomePage> {
     )
   ];
 
+  /* 
+    Bluetooth connection and data synchronization methods.
+  */
   void _scanForDevice() {
     _scanSubscription = _flutterBlue
     .scan(
@@ -162,6 +173,8 @@ class _MyHomePageState extends State<HomePage> {
             accCharSub = device.onValueChanged(accChar).listen((v) { 
               accData = _convert2ByteDataToIntList(v.sublist(0,6), 3); 
               gyrData = _convert4ByteDataToIntList(v.sublist(6,18), 3);
+              if(_writeToFile) { _writeData(_gestureIndexToWriteTo);}
+
               setState(() {  });
             });
             setState(() {
@@ -182,7 +195,7 @@ class _MyHomePageState extends State<HomePage> {
 
   List<int> _convert2ByteDataToIntList(List<int> values, int n) {
     List<int> output = new List<int>();
-    print(values);
+    //print(values);
     for(int i = 0; i < n; i++) {
       Uint8List buffer = Uint8List.fromList(values.sublist(i*2, i*2+2));
       var bdata = new ByteData.view(buffer.buffer);
@@ -193,7 +206,7 @@ class _MyHomePageState extends State<HomePage> {
 
   List<int> _convert4ByteDataToIntList(List<int> values, int n) {
     List<int> output = new List<int>();
-    print(values);
+    //print(values);
     for(int i = 0; i < n; i++) {
       Uint8List buffer = Uint8List.fromList(values.sublist(i*4, i*4+4));
       var bdata = new ByteData.view(buffer.buffer);
@@ -233,6 +246,42 @@ class _MyHomePageState extends State<HomePage> {
     });
   }
 
+  /*
+    File, data recording methods
+  */
+  Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
+    return directory.path;
+  }
+
+  Future<File> _localFileForGesture(int index) async {
+    final path = await _localPath;
+    File output = new File('$path/gesture_data_$index.txt');
+    print("writing to ${output.path}");  
+    bool fileExists = await output.exists();
+    if ( !fileExists ) {
+      print('creating file...');
+      return await output.create();
+    }    
+    return output;
+  }
+
+  _writeData(int index) async {
+    final file = await _localFileForGesture(index);
+    await file.writeAsString("${accData[0]},${accData[1]},${accData[2]},${gyrData[0]},${gyrData[1]},${gyrData[2]},\n", 
+    mode: FileMode.append);
+    // var sink = file.openWrite(mode: FileMode.append);
+    // sink.write('${accData[0]},${accData[1]},${accData[2]},${gyrData[0]},${gyrData[1]},${gyrData[2]},\n');
+    // sink.close();
+  }
+
+  toggleFileWrite(int index) {
+    setState(() {
+      _writeToFile = !_writeToFile;
+      _gestureIndexToWriteTo = index;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -269,11 +318,13 @@ class _MyHomePageState extends State<HomePage> {
 
   _buildGesturesList() {
     return _gesturesList.map((x) => GestureItem(
+      gestureIndex: x.gestureIndex,
       isGestureTrained: x.isGestureTrained,
       isGestureActive: x.isGestureActive,
       gestureTrainingDuration: x.gestureTrainingDuration,
       gestureName: x.gestureName,
-      sensorData: sensorData //hate this way to pass down IMU data, super hacky
+      sensorData: sensorData,
+      toggleFileWrite: toggleFileWrite
     )).toList();
   }
 
@@ -306,7 +357,7 @@ class _MyHomePageState extends State<HomePage> {
       ),
       body: Stack(
         children: <Widget>[
-          _isLoading ? LinearProgressIndicator() : new Container(),
+          _isLoading || _writeToFile ? LinearProgressIndicator() : new Container(),
           Center(
             child: sensorConnected 
             ? ListView( //list of children vertically, fills parent, 

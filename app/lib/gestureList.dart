@@ -3,19 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:app/trainingPage.dart';
 
 class GestureItem extends StatefulWidget { 
+  int gestureIndex;
   bool isGestureTrained;
   bool isGestureActive;
   var gestureTrainingDuration;
   String gestureName;
   List<int> sensorData;
+  var toggleFileWrite;
 
   GestureItem({
     Key key,
+    this.gestureIndex,
     this.isGestureTrained,
     this.isGestureActive,
     this.gestureTrainingDuration,
     this.gestureName,
     this.sensorData,
+    this.toggleFileWrite,
   }) : super(key:key);
 
   @override
@@ -38,10 +42,12 @@ class _GestureItemState extends State<GestureItem> {
       new MaterialPageRoute<void>(
         builder: (BuildContext context) {
           return TrainingPage(
-            title: widget.gestureName, 
+            title: widget.gestureName,
+            gestureIndex: widget.gestureIndex, 
             isTrained: widget.isGestureTrained, 
             trainingDuration: widget.gestureTrainingDuration, 
-            sensorData: widget.sensorData
+            sensorData: widget.sensorData,
+            toggleFileWrite: widget.toggleFileWrite,
           );
         },
       )
@@ -77,9 +83,9 @@ class _GestureItemState extends State<GestureItem> {
                   ),
               ),
             ),
-            // const ListTile(
+            // ListTile(
             //   leading: Icon(Icons.grade),
-            //   title: Text('The Enchanted Nightingale'),
+            //   title: Text("$sensorData"),
             //   subtitle: Text('Music by Julie Gable. Lyrics by Sidney Stein.'),
             // ),
             ButtonTheme.bar( // make buttons use the appropriate styles for cards

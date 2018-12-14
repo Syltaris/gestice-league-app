@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
 
+import 'dart:io';
+
+import 'package:path_provider/path_provider.dart';
+
+
 class TrainingPage extends StatefulWidget { 
   String title;
+  int gestureIndex;
   bool isTrained;
   var trainingDuration;
   List<int> sensorData;
+  var toggleFileWrite;
 
   TrainingPage({
     Key key,
     this.title, 
+    this.gestureIndex,
     this.isTrained, 
     this.trainingDuration, 
-    this.sensorData
+    this.sensorData,
+    this.toggleFileWrite,
   }) : super(key: key);
 
   @override
@@ -22,6 +31,33 @@ class TrainingPage extends StatefulWidget {
 
 */
 class _TrainingPageState extends State<TrainingPage> {
+
+  String fileText = "";
+
+  Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
+    return directory.path;
+  }
+  
+  _debugReadFile() async {
+    final path = await _localPath;
+    File file = new File('$path/gesture_data_${widget.gestureIndex}.txt');
+    return file.readAsString();
+  }
+  
+  _readFile() async {
+    String out = await _debugReadFile();
+    setState(() {
+      fileText =  out;
+    });
+  }
+
+  _deleteFile() async {
+    final path = await _localPath;
+    File file = new File('$path/gesture_data_${widget.gestureIndex}.txt');
+    return file.delete();
+  }
+
   @override
   Widget build(BuildContext context) { //reruns when setState
     int _trainingDuration = widget.trainingDuration;
@@ -84,13 +120,29 @@ class _TrainingPageState extends State<TrainingPage> {
                       color: Colors.green,
                       disabledColor: Colors.grey,
                       textColor: Colors.white,
-                      onPressed: widget.isTrained ? null : () => {},
+                      onPressed: widget.isTrained ? null : () => widget.toggleFileWrite(widget.gestureIndex),
+                    ),
+                    RaisedButton.icon(
+                      icon: Icon(Icons.accessible) ,
+                      label: Text('BOOP'),
+                      color: Colors.green,
+                      disabledColor: Colors.grey,
+                      textColor: Colors.white,
+                      onPressed: widget.isTrained ? null : () => _readFile(),
+                    ),
+                    RaisedButton.icon(
+                      icon: Icon(Icons.clear) ,
+                      label: Text('X'),
+                      color: Colors.green,
+                      disabledColor: Colors.grey,
+                      textColor: Colors.white,
+                      onPressed: widget.isTrained ? null : () => _deleteFile(),
                     ),
                   ],
                 ),
               ),
             ),
-            Text("AX: $gaX, AY: $gaY, AZ: $gaZ, GX: $ggX, GY: $ggY, GZ: $ggZ Sensor: $sensorData"),
+            Text("$fileText"),
           ]
         )
       )
