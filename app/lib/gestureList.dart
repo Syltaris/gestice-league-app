@@ -7,6 +7,7 @@ class GestureItem extends StatefulWidget {
   int gestureIndex;
   bool isGestureTrained;
   bool isGestureActive;
+  bool isGestureTraining;
   var gestureTrainingDuration;
   String gestureName;
   List<int> sensorData;
@@ -19,6 +20,7 @@ class GestureItem extends StatefulWidget {
     this.gestureIndex,
     this.isGestureTrained,
     this.isGestureActive,
+    this.isGestureTraining,
     this.gestureTrainingDuration,
     this.gestureName,
     this.sensorData,
@@ -50,6 +52,7 @@ class _GestureItemState extends State<GestureItem> {
             title: widget.gestureName,
             gestureIndex: widget.gestureIndex, 
             isTrained: widget.isGestureTrained, 
+            isGestureTraining: widget.isGestureTraining,
             trainingDuration: widget.gestureTrainingDuration, 
             sensorData: widget.sensorData,
             toggleFileWrite: widget.toggleFileWrite,
@@ -118,7 +121,7 @@ class _GestureItemState extends State<GestureItem> {
                   RaisedButton(
                     color: Colors.white,
                     textColor: widget.isGestureTrained ? Colors.black : Colors.cyan[700] ,
-                    child: const Text('TRAIN'),
+                    child: const Text('TRAIN', style: TextStyle(fontWeight: FontWeight.bold)),
                     onPressed: () => _pushTraining(),
                   ),
                   Switch(

@@ -189,7 +189,10 @@ class _MyHomePageState extends State<HomePage> {
             accCharSub = device.onValueChanged(accChar).listen((v) { 
               accData = _convert2ByteDataToIntList(v.sublist(0,6), 3); 
               gyrData = _convert4ByteDataToIntList(v.sublist(6,18), 3);
-              if(_writeToFile) { _writeData(_gestureIndexToWriteTo);}
+              if(_writeToFile) { 
+                _writeData(_gestureIndexToWriteTo);
+                _incGestureTrainingDuration(_gestureIndexToWriteTo); 
+              }
 
               //setState(() {  });
             });
@@ -356,12 +359,23 @@ class _MyHomePageState extends State<HomePage> {
   /*
     Data mutation methods
   */
-  // inefficient maybe but simle
+  // inefficient maybe but simple
   _updateGesture(int index, Gesture newGesture) {
     setState(() {
       _gesturesList[index] = newGesture;
     });
     _saveDataChanges();
+  }
+
+  _incGestureTrainingDuration(int index) {
+    Gesture x = _gesturesList[_gestureIndexToWriteTo];
+    _updateGesture(index, new Gesture(
+      x.gestureIndex, 
+      x.isGestureTrained, 
+      x.isGestureActive, 
+      x.gestureTrainingDuration+1, 
+      x.gestureName,
+    )); 
   }
 
   _deleteData() async {
@@ -394,6 +408,7 @@ class _MyHomePageState extends State<HomePage> {
       gestureIndex: x.gestureIndex,
       isGestureTrained: x.isGestureTrained,
       isGestureActive: x.isGestureActive,
+      isGestureTraining: _writeToFile,
       gestureTrainingDuration: x.gestureTrainingDuration,
       gestureName: x.gestureName,
       sensorData: sensorData,

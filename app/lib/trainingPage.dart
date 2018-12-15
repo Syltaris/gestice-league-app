@@ -9,6 +9,7 @@ class TrainingPage extends StatefulWidget {
   String title;
   int gestureIndex;
   bool isTrained;
+  bool isGestureTraining;
   var trainingDuration;
   List<int> sensorData;
   var toggleFileWrite;
@@ -18,6 +19,7 @@ class TrainingPage extends StatefulWidget {
     this.title, 
     this.gestureIndex,
     this.isTrained, 
+    this.isGestureTraining,
     this.trainingDuration, 
     this.sensorData,
     this.toggleFileWrite,
@@ -74,78 +76,120 @@ class _TrainingPageState extends State<TrainingPage> {
       appBar: AppBar( // MyHomePage object in App.build 's title ...?
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center, //mainAxis here is vertical axis, cross is hori
-          children: <Widget>[
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.all(50.0),
-                child: widget.isTrained 
-                ? Text('You have already trained this superpower!',
-                    style: TextStyle(
-                      fontSize: 20,
-                    )
-                  ) 
-                : widget.trainingDuration > 0 
-                ? Text('You have been training this superpower for $_trainingDuration seconds. Would you like to resume training?',
-                    style: TextStyle(
-                      fontSize: 20,
-                    )
+      body: Column(
+        children: <Widget>[
+          Text('TRAINING MODE', 
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 30.0,
+            ),
+          ),
+          Text("${widget.trainingDuration}"), //duration is not getting passed down for some reason, unless child calls parent mutation methods?
+          Container(
+            child: ButtonTheme.bar( // make buttons use the appropriate styles for cards
+              height: 50.0,
+              child: ButtonBar(
+                alignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  RaisedButton.icon(
+                    icon: Icon(widget.isGestureTraining ? Icons.pause : Icons.play_arrow) ,
+                    label: Text(widget.trainingDuration > 0 ? (widget.isGestureTraining ? 'PAUSE TRAINING' : 'RESUME TRAINING') : 'BEGIN TRAINING'),
+                    disabledColor: Colors.grey,
+                    textColor: Colors.white,
+                    onPressed: widget.isTrained ? null : () => widget.toggleFileWrite(widget.gestureIndex),
                   )
-                : Text("Let's begin training your new superpower!",
-                    style: TextStyle(
-                      fontSize: 20,
-                    )
-                  ),
+                ]
               ),
             ),
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 150.0),
-              child: ButtonTheme.bar( // make buttons use the appropriate styles for cards
-                child: ButtonBar(
-                  alignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    RaisedButton.icon(
-                      icon: Icon(Icons.filter_drama) ,
-                      label: const Text('UPLOAD'),
-                      color: Colors.orange,
-                      disabledColor: Colors.grey,
-                      textColor: Colors.white,
-                      onPressed: widget.isTrained ? null : () => {},
-                    ),
-                    RaisedButton.icon(
-                      icon: Icon(Icons.play_arrow) ,
-                      label: Text(widget.trainingDuration > 0 ? 'RESUME TRAINING' : 'BEGIN TRAINING'),
-                      color: Colors.green,
-                      disabledColor: Colors.grey,
-                      textColor: Colors.white,
-                      onPressed: widget.isTrained ? null : () => widget.toggleFileWrite(widget.gestureIndex),
-                    ),
-                    RaisedButton.icon(
-                      icon: Icon(Icons.accessible) ,
-                      label: Text('BOOP'),
-                      color: Colors.green,
-                      disabledColor: Colors.grey,
-                      textColor: Colors.white,
-                      onPressed: widget.isTrained ? null : () => _readFile(),
-                    ),
-                    RaisedButton.icon(
-                      icon: Icon(Icons.clear) ,
-                      label: Text('X'),
-                      color: Colors.green,
-                      disabledColor: Colors.grey,
-                      textColor: Colors.white,
-                      onPressed: widget.isTrained ? null : () => _deleteFile(),
-                    ),
-                  ],
+          ),
+          ButtonTheme.bar( // make buttons use the appropriate styles for cards
+            child: ButtonBar(
+              alignment: MainAxisAlignment.center,
+              children: <Widget>[
+                RaisedButton.icon(
+                  icon: Icon(Icons.payment) ,
+                  label: const Text('POOF'),
+                  color: Colors.orange,
+                  disabledColor: Colors.grey,
+                  textColor: Colors.white,
+                  onPressed: () => _readFile(),
                 ),
-              ),
+                RaisedButton.icon(
+                  icon: Icon(Icons.clear) ,
+                  label: Text('EWW'),
+                  color: Colors.green,
+                  disabledColor: Colors.grey,
+                  textColor: Colors.white,
+                  onPressed: () => _deleteFile(),
+                ),
+              ],
             ),
-            Text("$fileText"),
-          ]
-        )
+          ),
+          Expanded(
+            child: ListView(
+              children: <Widget>[
+                Text(fileText),
+              ]
+            ),
+          ),
+        ]
       )
+        // child: Column(
+        //   mainAxisAlignment: MainAxisAlignment.center, //mainAxis here is vertical axis, cross is hori
+        //   children: <Widget>[
+        //     Expanded(
+        //       child: Padding(
+        //         padding: EdgeInsets.all(50.0),
+        //         child: widget.isTrained 
+        //         ? Text('You have already trained this superpower!',
+        //             style: TextStyle(
+        //               fontSize: 20,
+        //             )
+        //           ) 
+        //         : widget.trainingDuration > 0 
+        //         ? Text('You have been training this superpower for $_trainingDuration seconds. Would you like to resume training?',
+        //             style: TextStyle(
+        //               fontSize: 20,
+        //             )
+        //           )
+        //         : Text("Let's begin training your new superpower!",
+        //             style: TextStyle(
+        //               fontSize: 20,
+        //             )
+        //           ),
+        //       ),
+        //     ),
+        //     Padding(
+        //       padding: EdgeInsets.symmetric(vertical: 150.0),
+        //       child: ButtonTheme.bar( // make buttons use the appropriate styles for cards
+        //         child: ButtonBar(
+        //           alignment: MainAxisAlignment.center,
+        //           children: <Widget>[
+        //             RaisedButton.icon(
+        //               icon: Icon(Icons.filter_drama) ,
+        //               label: const Text('UPLOAD'),
+        //               color: Colors.orange,
+        //               disabledColor: Colors.grey,
+        //               textColor: Colors.white,
+        //               onPressed: widget.isTrained ? null : () => {},
+        //             ),
+        //             RaisedButton.icon(
+        //               icon: Icon(Icons.play_arrow) ,
+        //               label: Text(widget.trainingDuration > 0 ? 'RESUME TRAINING' : 'BEGIN TRAINING'),
+        //               color: Colors.green,
+        //               disabledColor: Colors.grey,
+        //               textColor: Colors.white,
+        //               onPressed: widget.isTrained ? null : () => widget.toggleFileWrite(widget.gestureIndex),
+        //             ),
+
+        //           ],
+        //         ),
+        //       ),
+        //     ),
+        //     Text("$fileText"),
+        //   ]
+        // )
+        //)
     );
   }
 }
