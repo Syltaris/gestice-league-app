@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'dart:io';
-
+import 'dart:async';
 import 'package:path_provider/path_provider.dart';
 
 
@@ -35,6 +35,8 @@ class TrainingPage extends StatefulWidget {
 class _TrainingPageState extends State<TrainingPage> {
 
   String fileText = "";
+  bool isCounting = false;
+  var countingSub;
 
   Future<String> get _localPath async {
     final directory = await getApplicationDocumentsDirectory();
@@ -57,20 +59,22 @@ class _TrainingPageState extends State<TrainingPage> {
   _deleteFile() async {
     final path = await _localPath;
     File file = new File('$path/gesture_data_${widget.gestureIndex}.txt');
-    return file.delete();
+    return file.writeAsString("", mode: FileMode.write); //clear file instead of deleting
+    //return file.delete();
+  }
+
+  //shouldnt be done this way, should receive updated values fromparent but use this as temp workaround
+  _internalIncTrainingDur() {
+    if(isCounting) {
+      countingSub = Timer.periodic(Duration(seconds: 1), (Timer t) => setState(() {widget.trainingDuration = widget.trainingDuration + 25;}) ); //25 frames
+    } else {
+      countingSub?.cancel();
+    }
   }
 
   @override
   Widget build(BuildContext context) { //reruns when setState
-    int _trainingDuration = widget.trainingDuration;
-    var sensorData = widget.sensorData;
-
-    var gaX = widget.sensorData[0];
-    var gaY = widget.sensorData[1];
-    var gaZ = widget.sensorData[2];
-    var ggX = widget.sensorData[3];
-    var ggY = widget.sensorData[4];
-    var ggZ = widget.sensorData[5];
+    Duration _trainingDuration = Duration(seconds: (widget.trainingDuration / 25).round() );
 
     return Scaffold(
       appBar: AppBar( // MyHomePage object in App.build 's title ...?
@@ -84,7 +88,12 @@ class _TrainingPageState extends State<TrainingPage> {
               fontSize: 30.0,
             ),
           ),
-          Text("${widget.trainingDuration}"), //duration is not getting passed down for some reason, unless child calls parent mutation methods?
+          Text("You've been training for ${_trainingDuration.inMinutes} mins, ${_trainingDuration.inSeconds} secs!",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 20.0,
+            ),
+          ), //duration is not getting passed down for some reason, unless child calls parent mutation methods?
           Container(
             child: ButtonTheme.bar( // make buttons use the appropriate styles for cards
               height: 50.0,
@@ -95,12 +104,27 @@ class _TrainingPageState extends State<TrainingPage> {
                     icon: Icon(widget.isGestureTraining ? Icons.pause : Icons.play_arrow) ,
                     label: Text(widget.trainingDuration > 0 ? (widget.isGestureTraining ? 'PAUSE TRAINING' : 'RESUME TRAINING') : 'BEGIN TRAINING'),
                     disabledColor: Colors.grey,
+                    color: widget.isGestureTraining ? Colors.grey : Colors.green,
                     textColor: Colors.white,
-                    onPressed: widget.isTrained ? null : () => widget.toggleFileWrite(widget.gestureIndex),
+                    onPressed: widget.isTrained ? null : () {
+                      widget.toggleFileWrite(widget.gestureIndex);
+                      setState(() {
+                        isCounting = !isCounting; 
+                        widget.isGestureTraining = !widget.isGestureTraining;
+                      });
+                      _internalIncTrainingDur();
+                    },
                   )
                 ]
               ),
             ),
+          ),
+          Container(
+            child: widget.isGestureTraining 
+            ?
+            new CircularProgressIndicator()
+            :
+            new Container()
           ),
           ButtonTheme.bar( // make buttons use the appropriate styles for cards
             child: ButtonBar(
@@ -117,7 +141,7 @@ class _TrainingPageState extends State<TrainingPage> {
                 RaisedButton.icon(
                   icon: Icon(Icons.clear) ,
                   label: Text('EWW'),
-                  color: Colors.green,
+                  color: Colors.red,
                   disabledColor: Colors.grey,
                   textColor: Colors.white,
                   onPressed: () => _deleteFile(),
@@ -134,62 +158,6 @@ class _TrainingPageState extends State<TrainingPage> {
           ),
         ]
       )
-        // child: Column(
-        //   mainAxisAlignment: MainAxisAlignment.center, //mainAxis here is vertical axis, cross is hori
-        //   children: <Widget>[
-        //     Expanded(
-        //       child: Padding(
-        //         padding: EdgeInsets.all(50.0),
-        //         child: widget.isTrained 
-        //         ? Text('You have already trained this superpower!',
-        //             style: TextStyle(
-        //               fontSize: 20,
-        //             )
-        //           ) 
-        //         : widget.trainingDuration > 0 
-        //         ? Text('You have been training this superpower for $_trainingDuration seconds. Would you like to resume training?',
-        //             style: TextStyle(
-        //               fontSize: 20,
-        //             )
-        //           )
-        //         : Text("Let's begin training your new superpower!",
-        //             style: TextStyle(
-        //               fontSize: 20,
-        //             )
-        //           ),
-        //       ),
-        //     ),
-        //     Padding(
-        //       padding: EdgeInsets.symmetric(vertical: 150.0),
-        //       child: ButtonTheme.bar( // make buttons use the appropriate styles for cards
-        //         child: ButtonBar(
-        //           alignment: MainAxisAlignment.center,
-        //           children: <Widget>[
-        //             RaisedButton.icon(
-        //               icon: Icon(Icons.filter_drama) ,
-        //               label: const Text('UPLOAD'),
-        //               color: Colors.orange,
-        //               disabledColor: Colors.grey,
-        //               textColor: Colors.white,
-        //               onPressed: widget.isTrained ? null : () => {},
-        //             ),
-        //             RaisedButton.icon(
-        //               icon: Icon(Icons.play_arrow) ,
-        //               label: Text(widget.trainingDuration > 0 ? 'RESUME TRAINING' : 'BEGIN TRAINING'),
-        //               color: Colors.green,
-        //               disabledColor: Colors.grey,
-        //               textColor: Colors.white,
-        //               onPressed: widget.isTrained ? null : () => widget.toggleFileWrite(widget.gestureIndex),
-        //             ),
-
-        //           ],
-        //         ),
-        //       ),
-        //     ),
-        //     Text("$fileText"),
-        //   ]
-        // )
-        //)
     );
   }
 }
