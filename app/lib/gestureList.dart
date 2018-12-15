@@ -62,7 +62,7 @@ class _GestureItemState extends State<GestureItem> {
   @override
   Widget build(BuildContext context) { //reruns when setState
     return Card(
-      color: widget.isGestureActive ? Colors.green : Colors.grey,
+      color: widget.isGestureActive ? Colors.cyan[100] : Colors.grey,
       child: Card(
         margin: EdgeInsets.all(8.0),
         child: Column(
@@ -96,6 +96,7 @@ class _GestureItemState extends State<GestureItem> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold, 
                       fontSize: 20,
+                      color: Colors.white,
                     )
                   ),
               ),
@@ -106,27 +107,38 @@ class _GestureItemState extends State<GestureItem> {
             //   subtitle: Text('Music by Julie Gable. Lyrics by Sidney Stein.'),
             // ),
             ButtonTheme.bar( // make buttons use the appropriate styles for cards
-              child: ButtonBar(
+              child: 
+              ButtonBar(
+                alignment: MainAxisAlignment.spaceBetween, 
                 children: <Widget>[
-                  FlatButton(
-                    child: const Text('ON/OFF'),
-                    onPressed: !widget.isGestureTrained ? null : () => setState(() { 
-                      widget.isGestureActive = !widget.isGestureActive; 
-                      widget.updateGesture(
-                        widget.gestureIndex, 
-                        new Gesture(
-                          widget.gestureIndex,
-                          widget.isGestureTrained,
-                          widget.isGestureActive,
-                          widget.gestureTrainingDuration,
-                          widget.gestureName
-                        )
-                      ); 
-                    }),
+                  FlatButton(//HACKY: used as padding 
+                    child: const Text(''),
+                    onPressed: null
                   ),
-                  FlatButton(
+                  RaisedButton(
+                    color: Colors.white,
+                    textColor: widget.isGestureTrained ? Colors.black : Colors.cyan[700] ,
                     child: const Text('TRAIN'),
                     onPressed: () => _pushTraining(),
+                  ),
+                  Switch(
+                    value: widget.isGestureActive,
+                    onChanged: (bool newValue) => 
+                    setState(() { 
+                      if(widget.isGestureTrained) {
+                        widget.isGestureActive = newValue; 
+                        widget.updateGesture(
+                          widget.gestureIndex, 
+                          new Gesture(
+                            widget.gestureIndex,
+                            widget.isGestureTrained,
+                            newValue,
+                            widget.gestureTrainingDuration,
+                            widget.gestureName
+                          )
+                        ); 
+                      }
+                    }),
                   ),
                 ],
               ),
