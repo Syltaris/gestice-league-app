@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:dio/dio.dart';
 
 import 'package:app/gestureList.dart';
 
@@ -72,6 +73,9 @@ class HomePage extends StatefulWidget {
   Gesture list to map!
 */
 class _MyHomePageState extends State<HomePage> {
+  Dio dio = new Dio();
+  DateTime lastRequestTime = DateTime.now();
+
   bool _isLoading = false;
 
   FlutterBlue _flutterBlue = FlutterBlue.instance;
@@ -194,7 +198,8 @@ class _MyHomePageState extends State<HomePage> {
                 _incGestureTrainingDuration(_gestureIndexToWriteTo); 
                 _checkAndSetGestureTrained(_gestureIndexToWriteTo);
               }
-
+              
+              _checkAndTriggerGestures();
               //setState(() {  });
             });
             setState(() {
@@ -397,6 +402,27 @@ class _MyHomePageState extends State<HomePage> {
     return file.writeAsString("", mode: FileMode.write); //clear file instead of deleting
     //return file.delete();  }
   }
+
+  _sendRequest(int index) async {
+    Response response = await dio.get("https://maker.ifttt.com/trigger/gesture_${index}_triggered/with/key/bBAmCAcXlqNXlE59tCJYMD"); //WARNING: only for test
+    print(response.data.toString());
+  }
+
+  /*
+    Gestures
+  */
+  _checkAndTriggerGestures() {
+    for(Gesture g in _gesturesList) {
+      if(g.isGestureTrained && g.isGestureActive) {
+        //classify each data here and then trigger if true
+        if(gyrData[0] + gyrData[1] + gyrData[2] >= 15000 && DateTime.now().isAfter(lastRequestTime.add(new Duration(seconds: 1)))) {
+          lastRequestTime = DateTime.now();
+          _sendRequest(g.gestureIndex+1);
+        }
+      }
+    }
+  }
+
   @override
   void dispose() {
     _setAllNotifyValues(false);
