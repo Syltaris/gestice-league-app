@@ -66,7 +66,7 @@ class _TrainingPageState extends State<TrainingPage> {
   //shouldnt be done this way, should receive updated values fromparent but use this as temp workaround
   _internalIncTrainingDur() {
     if(isCounting) {
-      countingSub = Timer.periodic(Duration(seconds: 1), (Timer t) => setState(() {widget.trainingDuration = widget.trainingDuration + 25;}) ); //25 frames
+      countingSub = Timer.periodic(Duration(seconds: 1), (Timer t) => setState(() {widget.trainingDuration = widget.trainingDuration + 30;}) ); //30 frames
     } else {
       countingSub?.cancel();
     }
@@ -74,7 +74,7 @@ class _TrainingPageState extends State<TrainingPage> {
 
   @override
   Widget build(BuildContext context) { //reruns when setState
-    Duration _trainingDuration = Duration(seconds: (widget.trainingDuration / 25).round() );
+    Duration _trainingDuration = Duration(seconds: (widget.trainingDuration / 30).round() );
 
     return Scaffold(
       appBar: AppBar( // MyHomePage object in App.build 's title ...?
@@ -88,7 +88,7 @@ class _TrainingPageState extends State<TrainingPage> {
               fontSize: 30.0,
             ),
           ),
-          Text("You've been training for ${_trainingDuration.inMinutes} mins, ${_trainingDuration.inSeconds} secs!",
+          Text("You've been training for ${_trainingDuration.inMinutes} mins, ${_trainingDuration.inSeconds % 60} secs!",
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 20.0,
@@ -106,7 +106,7 @@ class _TrainingPageState extends State<TrainingPage> {
                     disabledColor: Colors.grey,
                     color: widget.isGestureTraining ? Colors.grey : Colors.green,
                     textColor: Colors.white,
-                    onPressed: widget.isTrained ? null : () {
+                    onPressed: widget.isTrained && !widget.isGestureTraining ? null : () { //allow user to stop recording when done
                       widget.toggleFileWrite(widget.gestureIndex);
                       setState(() {
                         isCounting = !isCounting; 
@@ -161,18 +161,3 @@ class _TrainingPageState extends State<TrainingPage> {
     );
   }
 }
-
-// class TrainerPage extends StatefulWidget { 
-//   String title;
-//   bool trained;
-//   var trainingDuration;
-
-//   TrainerPage(this.title, this.trained, this.trainingDuration);
-
-//   @override
-//   _TrainerPageState createState() => _TrainerPageState(this.trained, this.trainingDuration);
-// }
-
-// class _TrainerPageState extends State<TrainerPage> {
-
-// }

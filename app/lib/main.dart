@@ -192,6 +192,7 @@ class _MyHomePageState extends State<HomePage> {
               if(_writeToFile) { 
                 _writeData(_gestureIndexToWriteTo);
                 _incGestureTrainingDuration(_gestureIndexToWriteTo); 
+                _checkAndSetGestureTrained(_gestureIndexToWriteTo);
               }
 
               //setState(() {  });
@@ -368,7 +369,7 @@ class _MyHomePageState extends State<HomePage> {
   }
 
   _incGestureTrainingDuration(int index) {
-    Gesture x = _gesturesList[_gestureIndexToWriteTo];
+    Gesture x = _gesturesList[index];
     _updateGesture(index, new Gesture(
       x.gestureIndex, 
       x.isGestureTrained, 
@@ -378,12 +379,24 @@ class _MyHomePageState extends State<HomePage> {
     )); 
   }
 
+  _checkAndSetGestureTrained(int index) {
+    Gesture x = _gesturesList[index];
+    print(x.gestureTrainingDuration >= 30 * 60);
+    _updateGesture(index, new Gesture(
+      x.gestureIndex, 
+      x.gestureTrainingDuration >= 30 * 60, //30 frames * 60 seconds 
+      x.isGestureActive, 
+      x.gestureTrainingDuration, 
+      x.gestureName,
+    )); 
+  }
+
   _deleteData() async {
     final path = await _localPath;
     File file = new File('$path/user_data.json');
-    return file.delete();
+    return file.writeAsString("", mode: FileMode.write); //clear file instead of deleting
+    //return file.delete();  }
   }
-
   @override
   void dispose() {
     _setAllNotifyValues(false);
