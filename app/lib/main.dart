@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart';
+import 'package:http/http.dart' as http;
 
 import 'package:app/gestureList.dart';
 
@@ -404,8 +405,15 @@ class _MyHomePageState extends State<HomePage> {
   }
 
   _sendRequest(int index) async {
-    Response response = await dio.get("https://maker.ifttt.com/trigger/gesture_${index}_triggered/with/key/bBAmCAcXlqNXlE59tCJYMD"); //WARNING: only for test
-    print(response.data.toString());
+    // Response response = await dio.post("https://maker.ifttt.com/trigger/gesture_${index}_triggered/with/key/bBAmCAcXlqNXlE59tCJYMD", data: {"fake": "payload"}); //WARNING: only for test
+    // print(response.data.toString());
+
+    var url = "https://maker.ifttt.com/trigger/gesture_${index}_triggered/with/key/bBAmCAcXlqNXlE59tCJYMD";
+    http.post(url, body: {"fake": "payload"})
+        .then((response) {
+      print("Response status: ${response.statusCode}");
+      print("Response body: ${response.body}");
+    });
   }
 
   /*
@@ -415,7 +423,7 @@ class _MyHomePageState extends State<HomePage> {
     for(Gesture g in _gesturesList) {
       if(g.isGestureTrained && g.isGestureActive) {
         //classify each data here and then trigger if true
-        if(gyrData[0] + gyrData[1] + gyrData[2] >= 15000 && DateTime.now().isAfter(lastRequestTime.add(new Duration(seconds: 1)))) {
+        if(gyrData[0] + gyrData[1] + gyrData[2] >= 15000 && DateTime.now().isAfter(lastRequestTime.add(new Duration(seconds: 2)))) {
           lastRequestTime = DateTime.now();
           _sendRequest(g.gestureIndex+1);
         }

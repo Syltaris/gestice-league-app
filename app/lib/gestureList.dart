@@ -65,9 +65,10 @@ class _GestureItemState extends State<GestureItem> {
   @override
   Widget build(BuildContext context) { //reruns when setState
     return Card(
-      color: widget.isGestureActive ? Colors.cyan[100] : Colors.grey,
+      //color: Colors.grey,
       child: Card(
         margin: EdgeInsets.all(8.0),
+        color: widget.isGestureActive ? Colors.cyan[600] : Colors.grey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
