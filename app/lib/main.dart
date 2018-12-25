@@ -408,7 +408,7 @@ class _MyHomePageState extends State<HomePage> {
     // Response response = await dio.post("https://maker.ifttt.com/trigger/gesture_${index}_triggered/with/key/bBAmCAcXlqNXlE59tCJYMD", data: {"fake": "payload"}); //WARNING: only for test
     // print(response.data.toString());
 
-    var url = "https://maker.ifttt.com/trigger/gesture_${index}_triggered/with/key/bBAmCAcXlqNXlE59tCJYMD";
+    var url = "https://maker.ifttt.com/trigger/gesture_${index}_triggered/with/key/woCbCNBWjEvhtYZl9VYfU";
     http.post(url, body: {"fake": "payload"})
         .then((response) {
       print("Response status: ${response.statusCode}");
