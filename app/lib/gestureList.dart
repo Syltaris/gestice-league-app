@@ -44,6 +44,8 @@ class GestureItem extends StatefulWidget {
 class _GestureItemState extends State<GestureItem> {
   bool _isEditingName = false;
 
+  TextEditingController editedGestureName;
+
   void _pushTraining() {
     Navigator.of(context).push(
       new MaterialPageRoute<void>(
@@ -64,6 +66,8 @@ class _GestureItemState extends State<GestureItem> {
 
   @override
   Widget build(BuildContext context) { //reruns when setState
+    editedGestureName = TextEditingController( text: widget.gestureName );
+
     return Card(
       //color: Colors.grey,
       child: Card(
@@ -78,12 +82,9 @@ class _GestureItemState extends State<GestureItem> {
                 onTap: () => setState(() { _isEditingName = true; }),
                 child: _isEditingName 
                 ? TextField(
-                    controller: TextEditingController(
-                      text: widget.gestureName,
-                    ),
-                    onChanged: (v) => setState(() { widget.gestureName = v; }),
+                    controller: editedGestureName,
+                    //onChanged: (v) => () { widget.gestureName = v; },
                     onEditingComplete: () => setState(() { 
-                      _isEditingName = false; 
                       widget.updateGesture(
                         widget.gestureIndex, 
                         new Gesture(
@@ -91,9 +92,10 @@ class _GestureItemState extends State<GestureItem> {
                           widget.isGestureTrained,
                           widget.isGestureActive,
                           widget.gestureTrainingDuration,
-                          widget.gestureName
+                          editedGestureName.text
                         )
                       ); 
+                      _isEditingName = false; 
                     }),
                   )
                 : Text(widget.gestureName,
