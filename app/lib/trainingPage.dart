@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'dart:io';
 import 'dart:async';
+import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 
 
@@ -33,6 +34,7 @@ class TrainingPage extends StatefulWidget {
 
 */
 class _TrainingPageState extends State<TrainingPage> {
+  Dio dio = new Dio();
 
   String fileText = "";
   bool isCounting = false;
@@ -41,6 +43,15 @@ class _TrainingPageState extends State<TrainingPage> {
   Future<String> get _localPath async {
     final directory = await getApplicationDocumentsDirectory();
     return directory.path;
+  }
+
+  _uploadFile() async {
+    final path = await _localPath;
+    FormData formData = new FormData.from({
+      "file": new UploadFileInfo(new File('$path/gesture_data_${widget.gestureIndex}.txt'), '${widget.gestureIndex}.txt'),
+    });
+    Response response = await dio.post("http://7ea98581.ngrok.io/api/upload", data: formData);
+    print(response.data.toString());
   }
   
   _debugReadFile() async {
@@ -130,6 +141,14 @@ class _TrainingPageState extends State<TrainingPage> {
             child: ButtonBar(
               alignment: MainAxisAlignment.center,
               children: <Widget>[
+                RaisedButton.icon(
+                  icon: Icon(Icons.cloud_upload) ,
+                  label: Text('Upload'),
+                  color: Colors.blue,
+                  disabledColor: Colors.grey,
+                  textColor: Colors.white,
+                  onPressed: () => _uploadFile(),
+                ),
                 RaisedButton.icon(
                   icon: Icon(Icons.payment) ,
                   label: const Text('POOF'),
