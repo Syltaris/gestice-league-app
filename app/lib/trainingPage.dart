@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 
+const String SERVER_URL = "http://7ea98581.ngrok.io";
 
 class TrainingPage extends StatefulWidget { 
   String title;
@@ -50,8 +51,12 @@ class _TrainingPageState extends State<TrainingPage> {
     FormData formData = new FormData.from({
       "file": new UploadFileInfo(new File('$path/gesture_data_${widget.gestureIndex}.txt'), '${widget.gestureIndex}.txt'),
     });
-    Response response = await dio.post("http://7ea98581.ngrok.io/api/upload", data: formData);
+    Response response = await dio.post(SERVER_URL + "/api/upload", data: formData);
     print(response.data.toString());
+  }
+
+  _downloadModel() async {
+    
   }
   
   _debugReadFile() async {
