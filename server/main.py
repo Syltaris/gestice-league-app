@@ -15,15 +15,6 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Load the model
 #model = pickle.load(open('model.pkl','rb'))
-@app.route('/api',methods=['POST'])
-def predict():
-    # Get the data from the POST request.
-    data = request.get_json(force=True)
-    # Make prediction using model loaded from disk as per the data.
-    prediction = model.predict([[np.array(data['exp'])]])
-    # Take the first value of prediction
-    output = prediction[0]
-    return jsonify(output)
 
 def allowed_file(filename):
     return '.' in filename and \
