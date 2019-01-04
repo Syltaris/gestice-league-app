@@ -13,8 +13,25 @@ ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+model = pickle.load(open('model.pkl','rb'))
+
 # Load the model
-#model = pickle.load(open('model.pkl','rb'))
+@app.route('/api/predict',methods=['POST'])
+def predict():
+    # # Get the data from the POST request.
+    data =request.get_json()
+
+    if len(data) < 30: return '300'
+
+    print(len(data))
+    data = np.array(data)
+    data = data.flatten()
+    # # Make prediction using model loaded from disk as per the data.
+    prediction = model.predict([data])
+    # Take the first value of prediction
+    output = prediction[0]
+    return jsonify(output)
+    return '200'
 
 def allowed_file(filename):
     return '.' in filename and \

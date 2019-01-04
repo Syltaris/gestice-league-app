@@ -14,6 +14,7 @@ import 'package:app/idleTrainingPage.dart';
 void main() => runApp(MyApp());
 
 const String IFTTT_API_KEY = "cUFyYThzpW_SrXXbddRrb_";
+const String SERVER_URL = "http://5fac3e91.ngrok.io";
 
 class Gesture {
   final int gestureIndex;
@@ -107,6 +108,8 @@ class _MyHomePageState extends State<HomePage> {
   List<int> sensorData = new List<int>(6);
   List<int> accData = new List<int>(6);
   List<int> gyrData = new List<int>(6);
+
+  List<List<int>> gestureDataBuffer = [];
 
   // File state
   bool _writeToFile = false;
@@ -203,7 +206,13 @@ class _MyHomePageState extends State<HomePage> {
                 _gestureIndexToWriteTo == 0 ? null : _incGestureTrainingDuration(_gestureIndexToWriteTo); 
                 _gestureIndexToWriteTo == 0 ? null : _checkAndSetGestureTrained(_gestureIndexToWriteTo);
               }
-              
+
+              gestureDataBuffer.add([accData[0], accData[1], accData[2], gyrData[0], gyrData[1], gyrData[2]]); //probably better way to do this
+              if(gestureDataBuffer.length >= 30) {
+                _predictForGesture(new List.from(gestureDataBuffer));
+                gestureDataBuffer.clear();
+              }
+
               _checkAndTriggerGestures();
               //setState(() {  });
             });
@@ -456,6 +465,21 @@ class _MyHomePageState extends State<HomePage> {
     }
   }
 
+  _predictForGesture(var data) async {
+    //print(gestureDataBuffer);
+    // FormData formData = new FormData.from({
+    //   "exp": gestureDataBuffer,
+    // });
+    Response response = await dio.post(SERVER_URL + "/api/predict", data: data);
+
+    String answer = response.data.toString();
+    print(answer);
+
+    if(int.parse(answer) > 0) {
+      _sendRequest(int.parse(answer));
+    }
+  }
+
   @override
   void dispose() {
     _setAllNotifyValues(false);
@@ -493,6 +517,16 @@ class _MyHomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) { //reruns when setState
     List<Widget> tiles = new List<Widget>();
+    tiles.add(
+      RaisedButton.icon(
+        icon: Icon(Icons.beach_access) ,
+        label: const Text('PREDICT'),
+        color: Colors.lightBlue,
+        disabledColor: Colors.grey,
+        textColor: Colors.white,
+        onPressed: () => _predictForGesture(new List.from(gestureDataBuffer)).then( () {gestureDataBuffer.clear();}),
+      ),
+    );
     tiles.addAll(_buildGesturesList());
 
     return Scaffold(

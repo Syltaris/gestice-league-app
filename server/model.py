@@ -17,7 +17,6 @@ training_files = glob.glob('training_files/*.txt')
 frames = []
 labels = []
 
-
 for file in training_files:
     label = int(file[len('training_files/')])
 
@@ -38,20 +37,21 @@ for file in training_files:
         frames.append(y.values.flatten())
         labels.append(label)
 
-# print(frames)
-# print(labels)
+def train_knn():
+    # # Splitting the dataset into the Training set and Test set
+    X_train, X_test, y_train, y_test = train_test_split(frames, labels, test_size = 0.3, random_state = 21, stratify=labels)
 
-# # Splitting the dataset into the Training set and Test set
-X_train, X_test, y_train, y_test = train_test_split(frames, labels, test_size = 0.3, random_state = 21, stratify=labels)
+    knn = KNeighborsClassifier(n_neighbors=8)
+    knn.fit(X_train, y_train)
 
-knn = KNeighborsClassifier(n_neighbors=8)
-knn.fit(X_train, y_train)
+    prediction = knn.predict(X_test)
 
-prediction = knn.predict(X_test)
+    pickle.dump(knn, open('model.pkl','wb'))
 
-print(prediction == y_test)
+    print(prediction == y_test)
 
-
+if __name__ == '__main__':
+    train_knn()
 
 # # Fitting Simple Linear Regression to the Training set
 # regressor = LinearRegression()
