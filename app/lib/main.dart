@@ -12,7 +12,7 @@ import 'package:app/gestureList.dart';
 
 void main() => runApp(MyApp());
 
-const String IFTTT_API_URL = "https://maker.ifttt.com/trigger/gesture_${index}_triggered/with/key/FA0FS4lMZMz-4LBQLYh0a";
+const String IFTTT_API_KEY = "cUFyYThzpW_SrXXbddRrb_";
 
 class Gesture {
   final int gestureIndex;
@@ -410,7 +410,7 @@ class _MyHomePageState extends State<HomePage> {
     // Response response = await dio.post("https://maker.ifttt.com/trigger/gesture_${index}_triggered/with/key/bBAmCAcXlqNXlE59tCJYMD", data: {"fake": "payload"}); //WARNING: only for test
     // print(response.data.toString());
 
-    var url = IFTTT_API_URL;
+    var url = "https://maker.ifttt.com/trigger/gesture_${index}_triggered/with/key/" + IFTTT_API_KEY;
     http.post(url, body: {"fake": "payload"})
         .then((response) {
       print("Response status: ${response.statusCode}");
