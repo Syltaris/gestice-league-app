@@ -86,7 +86,7 @@ class _GestureItemState extends State<GestureItem> {
                     //onChanged: (v) => () { widget.gestureName = v; },
                     onEditingComplete: () => setState(() { 
                       widget.updateGesture(
-                        widget.gestureIndex, 
+                        widget.gestureIndex - 1, 
                         new Gesture(
                           widget.gestureIndex,
                           widget.isGestureTrained,
@@ -134,7 +134,7 @@ class _GestureItemState extends State<GestureItem> {
                       if(widget.isGestureTrained) {
                         widget.isGestureActive = newValue; 
                         widget.updateGesture(
-                          widget.gestureIndex, 
+                          widget.gestureIndex - 1, 
                           new Gesture(
                             widget.gestureIndex,
                             widget.isGestureTrained,

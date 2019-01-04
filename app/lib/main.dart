@@ -200,8 +200,8 @@ class _MyHomePageState extends State<HomePage> {
               gyrData = _convert4ByteDataToIntList(v.sublist(6,18), 3);
               if(_writeToFile) { 
                 _writeData(_gestureIndexToWriteTo);
-                _incGestureTrainingDuration(_gestureIndexToWriteTo); 
-                _checkAndSetGestureTrained(_gestureIndexToWriteTo);
+                _gestureIndexToWriteTo == 0 ? null : _incGestureTrainingDuration(_gestureIndexToWriteTo); 
+                _gestureIndexToWriteTo == 0 ? null : _checkAndSetGestureTrained(_gestureIndexToWriteTo);
               }
               
               _checkAndTriggerGestures();
@@ -396,8 +396,8 @@ class _MyHomePageState extends State<HomePage> {
   }
 
   _incGestureTrainingDuration(int index) {
-    Gesture x = _gesturesList[index];
-    _updateGesture(index, new Gesture(
+    Gesture x = _gesturesList[index - 1];
+    _updateGesture(index - 1, new Gesture(
       x.gestureIndex, 
       x.isGestureTrained, 
       x.isGestureActive, 
@@ -407,9 +407,9 @@ class _MyHomePageState extends State<HomePage> {
   }
 
   _checkAndSetGestureTrained(int index) {
-    Gesture x = _gesturesList[index];
+    Gesture x = _gesturesList[index - 1];
     print(x.gestureTrainingDuration >= 30 * 60);
-    _updateGesture(index, new Gesture(
+    _updateGesture(index - 1, new Gesture(
       x.gestureIndex, 
       x.gestureTrainingDuration >= 30 * 60, //30 frames * 60 seconds 
       x.isGestureActive, 
