@@ -7,39 +7,37 @@ import 'package:path_provider/path_provider.dart';
 
 const String SERVER_URL = "http://5fac3e91.ngrok.io";
 
-class TrainingPage extends StatefulWidget { 
+class IdleTrainingPage extends StatefulWidget { 
   String title;
   int gestureIndex;
-  bool isTrained;
-  bool isGestureTraining;
-  var trainingDuration;
-  List<int> sensorData;
   var toggleFileWrite;
+  var setIdleTrained;
 
-  TrainingPage({
+  IdleTrainingPage({
     Key key,
     this.title, 
     this.gestureIndex,
-    this.isTrained, 
-    this.isGestureTraining,
-    this.trainingDuration, 
-    this.sensorData,
     this.toggleFileWrite,
+    this.setIdleTrained,
   }) : super(key: key);
 
   @override
-  _TrainingPageState createState() => _TrainingPageState();
+  _IdleTrainingPageState createState() => _IdleTrainingPageState();
 }
 
 /*
 
 */
-class _TrainingPageState extends State<TrainingPage> {
+class _IdleTrainingPageState extends State<IdleTrainingPage> {
   Dio dio = new Dio();
 
   String fileText = "";
   bool isCounting = false;
   var countingSub;
+
+  bool isTrained = false;
+  bool isGestureTraining = false;
+  var trainingDuration = 0;
 
   Future<String> get _localPath async {
     final directory = await getApplicationDocumentsDirectory();
@@ -53,10 +51,8 @@ class _TrainingPageState extends State<TrainingPage> {
     });
     Response response = await dio.post(SERVER_URL + "/api/upload", data: formData);
     print(response.data.toString());
-  }
 
-  _downloadModel() async {
-    
+    widget.setIdleTrained();
   }
   
   _debugReadFile() async {
@@ -81,8 +77,20 @@ class _TrainingPageState extends State<TrainingPage> {
 
   //shouldnt be done this way, should receive updated values fromparent but use this as temp workaround
   _internalIncTrainingDur() {
-    if(isCounting) {
-      countingSub = Timer.periodic(Duration(seconds: 1), (Timer t) => setState(() {widget.trainingDuration = widget.trainingDuration + 30;}) ); //30 frames
+    if(isCounting && !isTrained) {
+      countingSub = Timer.periodic(Duration(seconds: 1), (Timer t) => setState(() {
+        trainingDuration = trainingDuration + 30;
+        isTrained = trainingDuration >= 30 * 60; //30 frames * 60 seconds 
+
+        if(isTrained && isGestureTraining) {
+          widget.toggleFileWrite(widget.gestureIndex);
+          setState(() {
+            isCounting = false; 
+            isGestureTraining = false;
+          });
+          countingSub?.cancel();
+        }
+        }) ); //30 frames
     } else {
       countingSub?.cancel();
     }
@@ -90,18 +98,20 @@ class _TrainingPageState extends State<TrainingPage> {
 
   @override
   Widget build(BuildContext context) { //reruns when setState
-    Duration _trainingDuration = Duration(seconds: (widget.trainingDuration / 30).round() );
+    Duration _trainingDuration = Duration(seconds: (trainingDuration / 30).round() );
 
     return Scaffold(
-      appBar: AppBar( // MyHomePage object in App.build 's title ...?
-        title: Text(widget.title),
-      ),
       body: Column(
         children: <Widget>[
-          Text('TRAINING MODE', 
+          Text('Idle Training Mode', 
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 30.0,
+            ),
+          ),
+          Text("Welcome to the Gestice League! \nYour first task is to allow us to learn how you act when you're not doing any action, when you comfortably at rest!\nWhen you're ready, hit train to start!",
+            style: TextStyle(
+              fontSize: 20.0,
             ),
           ),
           Text("You've been training for ${_trainingDuration.inMinutes} mins, ${_trainingDuration.inSeconds % 60} secs!",
@@ -117,16 +127,16 @@ class _TrainingPageState extends State<TrainingPage> {
                 alignment: MainAxisAlignment.center,
                 children: <Widget>[
                   RaisedButton.icon(
-                    icon: Icon(widget.isGestureTraining ? Icons.pause : Icons.play_arrow) ,
-                    label: Text(widget.trainingDuration > 0 ? (widget.isGestureTraining ? 'PAUSE TRAINING' : 'RESUME TRAINING') : 'BEGIN TRAINING'),
+                    icon: Icon(isGestureTraining ? Icons.pause : Icons.play_arrow) ,
+                    label: Text(trainingDuration > 0 ? (isGestureTraining ? 'PAUSE TRAINING' : 'RESUME TRAINING') : 'BEGIN TRAINING'),
                     disabledColor: Colors.grey,
-                    color: widget.isGestureTraining ? Colors.grey : Colors.green,
+                    color: isGestureTraining ? Colors.grey : Colors.green,
                     textColor: Colors.white,
-                    onPressed: widget.isTrained && !widget.isGestureTraining ? null : () { //allow user to stop recording when done
+                    onPressed: isTrained && !isGestureTraining ? null : () { //allow user to stop recording when done
                       widget.toggleFileWrite(widget.gestureIndex);
                       setState(() {
                         isCounting = !isCounting; 
-                        widget.isGestureTraining = !widget.isGestureTraining;
+                        isGestureTraining = !isGestureTraining;
                       });
                       _internalIncTrainingDur();
                     },
@@ -136,7 +146,7 @@ class _TrainingPageState extends State<TrainingPage> {
             ),
           ),
           Container(
-            child: widget.isGestureTraining 
+            child: isGestureTraining 
             ?
             new CircularProgressIndicator()
             :
@@ -148,27 +158,11 @@ class _TrainingPageState extends State<TrainingPage> {
               children: <Widget>[
                 RaisedButton.icon(
                   icon: Icon(Icons.cloud_upload) ,
-                  label: Text('Upload'),
+                  label: Text('Upload and Continue'),
                   color: Colors.blue,
                   disabledColor: Colors.grey,
                   textColor: Colors.white,
-                  onPressed: () => _uploadFile(),
-                ),
-                RaisedButton.icon(
-                  icon: Icon(Icons.payment) ,
-                  label: const Text('POOF'),
-                  color: Colors.orange,
-                  disabledColor: Colors.grey,
-                  textColor: Colors.white,
-                  onPressed: () => _readFile(),
-                ),
-                RaisedButton.icon(
-                  icon: Icon(Icons.clear) ,
-                  label: Text('EWW'),
-                  color: Colors.red,
-                  disabledColor: Colors.grey,
-                  textColor: Colors.white,
-                  onPressed: () => _deleteFile(),
+                  onPressed: isTrained ? () => _uploadFile() : null,
                 ),
               ],
             ),

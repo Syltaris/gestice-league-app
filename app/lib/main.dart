@@ -9,6 +9,7 @@ import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:app/gestureList.dart';
+import 'package:app/idleTrainingPage.dart';
 
 void main() => runApp(MyApp());
 
@@ -80,6 +81,7 @@ class _MyHomePageState extends State<HomePage> {
   DateTime lastRequestTime = DateTime.now();
 
   bool _isLoading = false;
+  bool _isIdleTrained = false;
 
   FlutterBlue _flutterBlue = FlutterBlue.instance;
 
@@ -293,6 +295,22 @@ class _MyHomePageState extends State<HomePage> {
     }    
     return output;
   }
+  
+  Future<bool> _checkIfIdleGestureTrained() async {
+    final path = await _localPath;
+    File file = new File('$path/gesture_data_0.txt');
+    print("writing to ${file.path}");  
+    bool fileExists = await file.exists();
+    if ( !fileExists ) {
+      return false;
+    } else {
+      String idleFile = await file.readAsString();
+      if(idleFile == null || idleFile.length < 100) { //if file corrupt 
+        return false;
+      }
+    }
+    return true;
+  }
 
   Future<List<Gesture>> _loadGesturesFromFile() async {
     List<Gesture> output = [];
@@ -304,11 +322,11 @@ class _MyHomePageState extends State<HomePage> {
       await file.create();
       //create list and write to file
       output = [
-        Gesture(0,false, false, 0,'New Superpower'),
-        Gesture(1,false, false, 0,'New Superpower'),
-        Gesture(2,false, false, 0,'New Superpower'),
-        Gesture(3,false, false, 0,'New Superpower'),
-        Gesture(4,false, false, 0,'New Superpower'),
+        Gesture(1,false, false, 0,'New Superpower 1'),
+        Gesture(2,false, false, 0,'New Superpower 2'),
+        Gesture(3,false, false, 0,'New Superpower 3'),
+        Gesture(4,false, false, 0,'New Superpower 4'),
+        Gesture(5,false, false, 0,'New Superpower 5'),
       ];
       String initJson = json.encode(output);
     } else {
@@ -317,13 +335,14 @@ class _MyHomePageState extends State<HomePage> {
       print(oldJson);
       if(oldJson == null || oldJson.length < 3) { //if file corrupt 
         output = [
-          Gesture(0,false, false, 0,'New Superpower'),
-          Gesture(1,false, false, 0,'New Superpower'),
-          Gesture(2,false, false, 0,'New Superpower'),
-          Gesture(3,false, false, 0,'New Superpower'),
-          Gesture(4,false, false, 0,'New Superpower'),
+          Gesture(1,false, false, 0,'New Superpower 1'),
+          Gesture(2,false, false, 0,'New Superpower 2'),
+          Gesture(3,false, false, 0,'New Superpower 3'),
+          Gesture(4,false, false, 0,'New Superpower 4'),
+          Gesture(5,false, false, 0,'New Superpower 5'),
         ];
       } else {
+        _isIdleTrained = await _checkIfIdleGestureTrained();
         List gestures = json.decode(oldJson);
         for(Object g in gestures) {
           output.add(new Gesture.fromJson(g));
@@ -401,7 +420,11 @@ class _MyHomePageState extends State<HomePage> {
 
   _deleteData() async {
     final path = await _localPath;
-    File file = new File('$path/user_data.json');
+
+    File file = new File('$path/gesture_data_0.txt');
+    file.writeAsString("", mode: FileMode.write); //clear file instead of deleting
+
+    file = new File('$path/user_data.json');
     return file.writeAsString("", mode: FileMode.write); //clear file instead of deleting
     //return file.delete();  }
   }
@@ -427,7 +450,7 @@ class _MyHomePageState extends State<HomePage> {
         //classify each data here and then trigger if true
         if(gyrData[0] + gyrData[1] + gyrData[2] >= 15000 && DateTime.now().isAfter(lastRequestTime.add(new Duration(seconds: 2)))) {
           lastRequestTime = DateTime.now();
-          _sendRequest(g.gestureIndex+1);
+          _sendRequest(g.gestureIndex);
         }
       }
     }
@@ -470,17 +493,6 @@ class _MyHomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) { //reruns when setState
     List<Widget> tiles = new List<Widget>();
-    //tiles.add(Text("ACC: $accData GYR: $gyrData"));
-    // tiles.add(
-    //   RaisedButton.icon(
-    //     icon: Icon(Icons.add) ,
-    //     label: const Text('CHECK'),
-    //     color: Colors.lightBlue,
-    //     disabledColor: Colors.grey,
-    //     textColor: Colors.white,
-    //     onPressed: !deviceFound ? null : () => _printChars(),
-    //   )
-    // );
     tiles.addAll(_buildGesturesList());
 
     return Scaffold(
@@ -507,9 +519,17 @@ class _MyHomePageState extends State<HomePage> {
           _isLoading ? LinearProgressIndicator() : new Container(),
           sensorConnected 
           ?
-          ListView( 
-            children: tiles
-          )
+          _isIdleTrained ?
+            ListView( 
+              children: tiles
+            )
+            :
+            IdleTrainingPage(
+              title: 'Idle State',
+              gestureIndex: 0, 
+              toggleFileWrite: toggleFileWrite,
+              setIdleTrained: () => setState(() {_isIdleTrained = true;})
+            )
           :
           Column(
             children: <Widget>[
