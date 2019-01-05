@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:app/main.dart';
+import 'package:app/models/gesture.dart';
 import 'package:app/trainingPage.dart';
 
 class GestureItem extends StatefulWidget { 

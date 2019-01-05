@@ -5,7 +5,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 
-const String SERVER_URL = "http://1fddbf7d.ngrok.io";
+const String SERVER_URL = "http://845ca6c8.ngrok.io";
 
 class IdleTrainingPage extends StatefulWidget { 
   String title;
@@ -162,7 +162,7 @@ class _IdleTrainingPageState extends State<IdleTrainingPage> {
                   color: Colors.blue,
                   disabledColor: Colors.grey,
                   textColor: Colors.white,
-                  onPressed: isTrained ? () => _uploadFile() : null,
+                  onPressed: isTrained ? () => widget.setIdleTrained() : null,
                 ),
               ],
             ),

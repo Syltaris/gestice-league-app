@@ -9,7 +9,8 @@ import requests
 import json
 import glob
 
-SAMPLING_FREQ = 30.0
+SAMPLING_FREQ = 60.0
+SAMPLING_RATE = int(SAMPLING_FREQ)
 columns = ['aX', 'aY', 'aZ', 'gX', 'gY', 'gZ']
 # Importing the dataset
 
@@ -26,7 +27,7 @@ for file in training_files:
 
     samples = int(len(x) / SAMPLING_FREQ)
     for i in range(0, samples):
-        y = x.iloc[i*30:(i+1)*30]
+        y = x.iloc[i*SAMPLING_RATE:(i+1)*SAMPLING_RATE]
 
         if len(y) < int(SAMPLING_FREQ) : break
 

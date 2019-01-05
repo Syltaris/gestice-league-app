@@ -6,8 +6,8 @@ import os
 from os.path import join, dirname, realpath
 from werkzeug.utils import secure_filename
 
-APP_ROOT = ''
-UPLOAD_FOLDER = "/mnt/c/Github_Repos/zex-flutter-makerthon/server/training_files/"
+APP_ROOT = "/mnt/c/Github_Repos/zex-flutter-makerthon/server/"
+UPLOAD_FOLDER = "training_files/"
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 app = Flask(__name__)
