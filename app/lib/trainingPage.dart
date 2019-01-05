@@ -144,13 +144,6 @@ class _TrainingPageState extends State<TrainingPage> {
               ),
             ),
           ),
-          Container(
-            child: widget.isGestureTraining 
-            ?
-            new CircularProgressIndicator()
-            :
-            new Container()
-          ),
           ButtonTheme.bar( // make buttons use the appropriate styles for cards
             child: ButtonBar(
               alignment: MainAxisAlignment.center,
@@ -165,7 +158,7 @@ class _TrainingPageState extends State<TrainingPage> {
                 ),
                 RaisedButton.icon(
                   icon: Icon(Icons.payment) ,
-                  label: const Text('POOF'),
+                  label: const Text('View'),
                   color: Colors.orange,
                   disabledColor: Colors.grey,
                   textColor: Colors.white,
@@ -173,7 +166,7 @@ class _TrainingPageState extends State<TrainingPage> {
                 ),
                 RaisedButton.icon(
                   icon: Icon(Icons.clear) ,
-                  label: Text('EWW'),
+                  label: Text('Delete'),
                   color: Colors.red,
                   disabledColor: Colors.grey,
                   textColor: Colors.white,

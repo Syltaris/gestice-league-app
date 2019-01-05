@@ -34,6 +34,7 @@ def predict():
     prediction = model.predict([data])
     # Take the first value of prediction
     output = prediction[0]
+    print(output)
     return jsonify(output)
     return '200'
 

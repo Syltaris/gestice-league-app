@@ -14,7 +14,7 @@ import 'package:app/idleTrainingPage.dart';
 import 'package:spotify/spotify_io.dart' as spotify;
 
 const String IFTTT_API_KEY = "cUFyYThzpW_SrXXbddRrb_";
-const String SERVER_URL = "http://b4367bb9.ap.ngrok.io";
+const String SERVER_URL = "http://1bd19bbb.ap.ngrok.io";
 const int SAMPLING_RATE = 60;
 
 class HomePage extends StatefulWidget { 
@@ -533,15 +533,14 @@ class _MyHomePageState extends State<HomePage> {
             )
           :
           Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              Expanded(
-                child: FittedBox(
+              FittedBox(
                   fit: BoxFit.contain, // otherwise the logo will be tiny
                   child: Image.asset('assets/icon/gl-logo2.png'),
-                ),
               ),
               Container(
-                margin: const EdgeInsets.only(bottom: 200.0), //TODO: not the best way to do this
+                //margin: const EdgeInsets.only(bottom: 200.0), //TODO: not the best way to do this
                 child: ButtonTheme.bar( // make buttons use the appropriate styles for cards
                   height: 50.0,
                   child: ButtonBar(
