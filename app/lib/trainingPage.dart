@@ -91,7 +91,9 @@ class _TrainingPageState extends State<TrainingPage> {
   //shouldnt be done this way, should receive updated values fromparent but use this as temp workaround
   _internalIncTrainingDur() {
     if(isCounting) {
-      countingSub = Timer.periodic(Duration(seconds: 1), (Timer t) => setState(() {widget.trainingDuration = widget.trainingDuration + 30;}) ); //30 frames
+      countingSub = Timer.periodic(Duration(seconds: 1), (Timer t) => setState(() {
+        widget.trainingDuration = widget.trainingDuration + 30;
+      }) ); //30 frames
     } else {
       countingSub?.cancel();
     }
@@ -174,6 +176,13 @@ class _TrainingPageState extends State<TrainingPage> {
                 ),
               ],
             ),
+          ),
+          Container(
+            child: widget.isGestureTraining 
+            ?
+            new Image.asset('assets/gifs/man.gif')
+            :
+            new Image.asset('assets/gifs/static_man.gif')
           ),
           Expanded(
             child: ListView(

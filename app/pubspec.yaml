@@ -45,6 +45,9 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
       - assets/icon/gl-logo2.png
+      - assets/gifs/cat.gif
+      - assets/gifs/man.gif
+      - assets/gifs/static_man.gif
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.io/assets-and-images/#resolution-aware.
