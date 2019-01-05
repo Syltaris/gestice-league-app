@@ -162,7 +162,7 @@ class _IdleTrainingPageState extends State<IdleTrainingPage> {
                   color: Colors.blue,
                   disabledColor: Colors.grey,
                   textColor: Colors.white,
-                  onPressed: isTrained ? () => widget.setIdleTrained() : null,
+                  onPressed: isTrained ? () => _uploadFile() : null,
                 ),
               ],
             ),

@@ -57,7 +57,6 @@ class _MyHomePageState extends State<HomePage> {
   var valuesSubscription;
 
   // Gait sensor data
-  List<int> sensorData = new List<int>(6);
   List<int> accData = new List<int>(6);
   List<int> gyrData = new List<int>(6);
 
@@ -66,6 +65,7 @@ class _MyHomePageState extends State<HomePage> {
   // File state
   bool _writeToFile = false;
   int _gestureIndexToWriteTo = 0;
+  var fileSink;
 
   List<Gesture> _gesturesList;
 
@@ -101,7 +101,6 @@ class _MyHomePageState extends State<HomePage> {
     )
     .listen((scanResult) {
       bool sensorFound = (scanResult.advertisementData.localName == "GaitSensor1");
-      DeviceIdentifier id = scanResult.device.id;
       setState(() {
         deviceFound = deviceFound || sensorFound;
         if(sensorFound) {
@@ -120,7 +119,6 @@ class _MyHomePageState extends State<HomePage> {
     .listen((s) {
       if(s == BluetoothDeviceState.connected) {
         setState(() {       
-          //sensorConnected = true;
           _isLoading = true;
         });
       }
@@ -167,9 +165,6 @@ class _MyHomePageState extends State<HomePage> {
                 _predictForGesture(new List.from(gestureDataBuffer));
                 gestureDataBuffer.clear();
               }
-
-              //_checkAndTriggerGestures();
-              //setState(() {  });
             });
             setState(() {
               _isLoading = false;
@@ -189,13 +184,7 @@ class _MyHomePageState extends State<HomePage> {
     device != null ? await device.setNotifyValue(c, x) : null;
   }
 
-  // _readCharacteristic(BluetoothCharacteristic c) async {
-  //   List<int> values = await device.readCharacteristic(c);
-  //   return _convertDataToIntList(values);
-  // }
-
    _disconnect() {
-    // Remove all value changed listeners
     _setAllNotifyValues(false);
     deviceStateSubscription?.cancel();
     deviceStateSubscription = null;
@@ -211,6 +200,7 @@ class _MyHomePageState extends State<HomePage> {
     });
   }
 
+
   /*
     File, data recording methods
   */
@@ -222,7 +212,6 @@ class _MyHomePageState extends State<HomePage> {
   Future<File> _localFileForGesture(int index) async {
     final path = await _localPath;
     File output = new File('$path/gesture_data_$index.txt');
-    print("writing to ${output.path}");  
     bool fileExists = await output.exists();
     if ( !fileExists ) {
       print('creating file...');
@@ -234,7 +223,6 @@ class _MyHomePageState extends State<HomePage> {
   Future<bool> _checkIfIdleGestureTrained() async {
     final path = await _localPath;
     File file = new File('$path/gesture_data_0.txt');
-    print("writing to ${file.path}");  
     bool fileExists = await file.exists();
     if ( !fileExists ) {
       return false;
@@ -281,7 +269,6 @@ class _MyHomePageState extends State<HomePage> {
         List gestures = json.decode(oldJson);
         for(Object g in gestures) {
           output.add(new Gesture.fromJson(g));
-          print(g);
         }
       }
     }
@@ -300,13 +287,20 @@ class _MyHomePageState extends State<HomePage> {
     File file = new File('$path/user_data.json');
     await file.writeAsString(toFile);
     print('changes saved!');
-    print(toFile);
   }
 
   _writeData(int index) async {
-    final file = await _localFileForGesture(index);
-    await file.writeAsString("${accData[0]},${accData[1]},${accData[2]},${gyrData[0]},${gyrData[1]},${gyrData[2]},\n", 
-    mode: FileMode.append);
+    if(_writeToFile && fileSink == null) {
+      final file = await _localFileForGesture(index);
+      fileSink = file.openWrite(mode: FileMode.append);
+    } else if (_writeToFile) {
+      fileSink.write('${accData[0]},${accData[1]},${accData[2]},${gyrData[0]},${gyrData[1]},${gyrData[2]},\n');
+    } else {
+      fileSink?.close();
+      fileSink = null;
+    }
+    // await file.writeAsString("${accData[0]},${accData[1]},${accData[2]},${gyrData[0]},${gyrData[1]},${gyrData[2]},\n", 
+    // mode: FileMode.append);
     // var sink = file.openWrite(mode: FileMode.append);
     // sink.write('${accData[0]},${accData[1]},${accData[2]},${gyrData[0]},${gyrData[1]},${gyrData[2]},\n');
     // sink.close();
@@ -395,10 +389,15 @@ class _MyHomePageState extends State<HomePage> {
     Response response = await dio.post(SERVER_URL + "/api/predict", data: data);
     int answer = int.parse(response.data.toString());
     print(answer);
-    if(answer == 2) {
-      _spotifyLogin();
-    }
-    if(answer > 0 && answer != 2) {
+
+    if(answer == 0) { return; }
+
+    var g = _gesturesList[answer - 1];
+    if(g.isGestureTrained && g.isGestureActive) {
+      if(answer == 2) {
+        _spotifyLogin();
+        return;
+      }
       _sendRequest(answer);
     }
   }
@@ -463,7 +462,6 @@ class _MyHomePageState extends State<HomePage> {
       isGestureTraining: _writeToFile,
       gestureTrainingDuration: x.gestureTrainingDuration,
       gestureName: x.gestureName,
-      sensorData: sensorData,
       toggleFileWrite: toggleFileWrite,
       saveDataChanges: _saveDataChanges,
       updateGesture : _updateGesture,
@@ -473,19 +471,19 @@ class _MyHomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) { //reruns when setState
     List<Widget> tiles = new List<Widget>();
-    tiles.add(
-      RaisedButton.icon(
-        icon: Icon(Icons.beach_access) ,
-        label: const Text('PREDICT'),
-        color: Colors.lightBlue,
-        disabledColor: Colors.grey,
-        textColor: Colors.white,
-        onPressed: () {
-          _predictForGesture(new List.from(gestureDataBuffer));
-          gestureDataBuffer.clear();
-        },
-      ),
-    );
+    // tiles.add(
+    //   RaisedButton.icon(
+    //     icon: Icon(Icons.beach_access) ,
+    //     label: const Text('PREDICT'),
+    //     color: Colors.lightBlue,
+    //     disabledColor: Colors.grey,
+    //     textColor: Colors.white,
+    //     onPressed: () {
+    //       _predictForGesture(new List.from(gestureDataBuffer));
+    //       gestureDataBuffer.clear();
+    //     },
+    //   ),
+    // );
     tiles.addAll(_buildGesturesList());
 
     return Scaffold(

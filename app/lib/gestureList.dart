@@ -11,7 +11,6 @@ class GestureItem extends StatefulWidget {
   bool isGestureTraining;
   var gestureTrainingDuration;
   String gestureName;
-  List<int> sensorData;
   var toggleFileWrite;
   var saveDataChanges;
   var updateGesture;
@@ -24,7 +23,6 @@ class GestureItem extends StatefulWidget {
     this.isGestureTraining,
     this.gestureTrainingDuration,
     this.gestureName,
-    this.sensorData,
     this.toggleFileWrite,
     this.saveDataChanges,
     this.updateGesture
@@ -57,7 +55,6 @@ class _GestureItemState extends State<GestureItem> {
             isTrained: widget.isGestureTrained, 
             isGestureTraining: widget.isGestureTraining,
             trainingDuration: widget.gestureTrainingDuration, 
-            sensorData: widget.sensorData,
             toggleFileWrite: widget.toggleFileWrite,
           );
         },
@@ -70,15 +67,13 @@ class _GestureItemState extends State<GestureItem> {
     editedGestureName = TextEditingController( text: widget.gestureName );
 
     return Card(
-      //color: Colors.grey,
-      child: Card(
         margin: EdgeInsets.all(8.0),
         color: widget.isGestureActive ? Colors.cyan[600] : Colors.grey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             Padding(
-              padding: EdgeInsets.all(8.0),
+              padding: EdgeInsets.all(10.0),
               child: GestureDetector(
                 onTap: () => setState(() { _isEditingName = true; }),
                 child: _isEditingName 
@@ -108,10 +103,17 @@ class _GestureItemState extends State<GestureItem> {
                   ),
               ),
             ),
-            // ListTile(
-            //   leading: Icon(Icons.grade),
-            //   title: Text("$sensorData"),
-            //   subtitle: Text('Music by Julie Gable. Lyrics by Sidney Stein.'),
+            // DropdownButton(
+            //   items: [
+            //     DropdownMenuItem(
+            //       child: Text('IFTTT'),
+            //       value: 'ifttt'
+            //     ),
+            //     DropdownMenuItem(
+            //       child: Text('Spotify'),
+            //       value: 'spotify'
+            //     )
+            //   ]
             // ),
             ButtonTheme.bar( // make buttons use the appropriate styles for cards
               child: 
@@ -152,7 +154,6 @@ class _GestureItemState extends State<GestureItem> {
             ),
           ],
         ),
-      )
     );
   }
 }

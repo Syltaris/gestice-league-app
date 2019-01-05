@@ -15,7 +15,6 @@ class TrainingPage extends StatefulWidget {
   bool isTrained;
   bool isGestureTraining;
   var trainingDuration;
-  List<int> sensorData;
   var toggleFileWrite;
 
   TrainingPage({
@@ -25,7 +24,6 @@ class TrainingPage extends StatefulWidget {
     this.isTrained, 
     this.isGestureTraining,
     this.trainingDuration, 
-    this.sensorData,
     this.toggleFileWrite,
   }) : super(key: key);
 
