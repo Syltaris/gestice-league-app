@@ -4,8 +4,10 @@ import 'dart:io';
 import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as http;
 
-const String SERVER_URL = "http://5fac3e91.ngrok.io";
+
+const String SERVER_URL = "http://1fddbf7d.ngrok.io";
 
 class TrainingPage extends StatefulWidget { 
   String title;
@@ -53,6 +55,13 @@ class _TrainingPageState extends State<TrainingPage> {
     });
     Response response = await dio.post(SERVER_URL + "/api/upload", data: formData);
     print(response.data.toString());
+
+    // var url = SERVER_URL + "/api/upload";
+    // http.post(url, body: {"data": formData})
+    //     .then((response) {
+    //     print("Response status: ${response.statusCode}");
+    //     print("Response body: ${response.body}");
+    //   });
   }
 
   _downloadModel() async {

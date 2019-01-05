@@ -14,7 +14,7 @@ import 'package:app/idleTrainingPage.dart';
 void main() => runApp(MyApp());
 
 const String IFTTT_API_KEY = "cUFyYThzpW_SrXXbddRrb_";
-const String SERVER_URL = "http://5fac3e91.ngrok.io";
+const String SERVER_URL = "http://1fddbf7d.ngrok.io";
 
 class Gesture {
   final int gestureIndex;
@@ -161,7 +161,7 @@ class _MyHomePageState extends State<HomePage> {
   void _establishConnection() async {
     // Connect to device
     deviceConnection = _flutterBlue
-    .connect(device, timeout: const Duration(seconds: 3))
+    .connect(device, timeout: const Duration(seconds: 5))
     .listen((s) {
       if(s == BluetoothDeviceState.connected) {
         setState(() {       
@@ -208,12 +208,12 @@ class _MyHomePageState extends State<HomePage> {
               }
 
               gestureDataBuffer.add([accData[0], accData[1], accData[2], gyrData[0], gyrData[1], gyrData[2]]); //probably better way to do this
-              if(gestureDataBuffer.length >= 30) {
+              if(gestureDataBuffer.length >= 30 && _isIdleTrained) {
                 _predictForGesture(new List.from(gestureDataBuffer));
                 gestureDataBuffer.clear();
               }
 
-              _checkAndTriggerGestures();
+              //_checkAndTriggerGestures();
               //setState(() {  });
             });
             setState(() {
@@ -439,15 +439,15 @@ class _MyHomePageState extends State<HomePage> {
   }
 
   _sendRequest(int index) async {
-    // Response response = await dio.post("https://maker.ifttt.com/trigger/gesture_${index}_triggered/with/key/bBAmCAcXlqNXlE59tCJYMD", data: {"fake": "payload"}); //WARNING: only for test
-    // print(response.data.toString());
+    Response response = await dio.post("https://maker.ifttt.com/trigger/gesture_${index}_triggered/with/key/" + IFTTT_API_KEY, data: {"fake": "payload"}); //WARNING: only for test
+    print(response.data.toString());
 
-    var url = "https://maker.ifttt.com/trigger/gesture_${index}_triggered/with/key/" + IFTTT_API_KEY;
-    http.post(url, body: {"fake": "payload"})
-        .then((response) {
-      print("Response status: ${response.statusCode}");
-      print("Response body: ${response.body}");
-    });
+    // var url = "https://maker.ifttt.com/trigger/gesture_${index}_triggered/with/key/" + IFTTT_API_KEY;
+    // http.post(url, body: {"fake": "payload"})
+    //     .then((response) {
+    //   print("Response status: ${response.statusCode}");
+    //   print("Response body: ${response.body}");
+    // });
   }
 
   /*
@@ -524,7 +524,10 @@ class _MyHomePageState extends State<HomePage> {
         color: Colors.lightBlue,
         disabledColor: Colors.grey,
         textColor: Colors.white,
-        onPressed: () => _predictForGesture(new List.from(gestureDataBuffer)).then( () {gestureDataBuffer.clear();}),
+        onPressed: () {
+          _predictForGesture(new List.from(gestureDataBuffer));
+          gestureDataBuffer.clear();
+        },
       ),
     );
     tiles.addAll(_buildGesturesList());

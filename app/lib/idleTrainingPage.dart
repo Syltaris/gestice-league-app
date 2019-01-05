@@ -5,7 +5,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 
-const String SERVER_URL = "http://5fac3e91.ngrok.io";
+const String SERVER_URL = "http://1fddbf7d.ngrok.io";
 
 class IdleTrainingPage extends StatefulWidget { 
   String title;
