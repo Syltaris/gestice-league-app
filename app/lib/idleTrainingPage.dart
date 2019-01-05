@@ -102,17 +102,21 @@ class _IdleTrainingPageState extends State<IdleTrainingPage> {
 
     return Scaffold(
       body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Text('Idle Training Mode', 
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 30.0,
             ),
+            textAlign: TextAlign.center,
           ),
           Text("Welcome to the Gestice League! \nYour first task is to allow us to learn how you act when you're not doing any action, when you comfortably at rest!\nWhen you're ready, hit train to start!",
             style: TextStyle(
               fontSize: 20.0,
             ),
+            softWrap: true,
+            textAlign: TextAlign.center,
           ),
           Text("You've been training for ${_trainingDuration.inMinutes} mins, ${_trainingDuration.inSeconds % 60} secs!",
             style: TextStyle(
