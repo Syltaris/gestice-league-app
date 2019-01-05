@@ -5,7 +5,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 
-const String SERVER_URL = "http://845ca6c8.ngrok.io";
+const String SERVER_URL = "http://1bd19bbb.ap.ngrok.io";
 
 class IdleTrainingPage extends StatefulWidget { 
   String title;
@@ -57,7 +57,9 @@ class _IdleTrainingPageState extends State<IdleTrainingPage> {
   
   _debugReadFile() async {
     final path = await _localPath;
-    File file = new File('$path/gesture_data_${widget.gestureIndex}.txt');
+    String filepath = '$path/gesture_data_${widget.gestureIndex}.txt';
+    File file = new File(filepath);
+    print(filepath);
     return file.readAsString();
   }
   

@@ -7,7 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 
 
-const String SERVER_URL = "http://845ca6c8.ngrok.io";
+const String SERVER_URL = "http://1bd19bbb.ap.ngrok.io";
 
 class TrainingPage extends StatefulWidget { 
   String title;
@@ -68,7 +68,9 @@ class _TrainingPageState extends State<TrainingPage> {
   
   _debugReadFile() async {
     final path = await _localPath;
-    File file = new File('$path/gesture_data_${widget.gestureIndex}.txt');
+    String filepath = '$path/gesture_data_${widget.gestureIndex}.txt';
+    File file = new File(filepath);
+    print(filepath);
     return file.readAsString();
   }
   
@@ -129,7 +131,7 @@ class _TrainingPageState extends State<TrainingPage> {
                     disabledColor: Colors.grey,
                     color: widget.isGestureTraining ? Colors.grey : Colors.green,
                     textColor: Colors.white,
-                    onPressed: widget.isTrained && !widget.isGestureTraining ? null : () { //allow user to stop recording when done
+                    onPressed:  () { //allow user to stop recording when done/ widget.isTrained && !widget.isGestureTraining ? null :
                       widget.toggleFileWrite(widget.gestureIndex);
                       setState(() {
                         isCounting = !isCounting; 

@@ -1,14 +1,18 @@
 # Import libraries
 import numpy as np
+import pandas as pd
 from flask import Flask, flash, request, redirect, url_for, jsonify
 import pickle
 import os
 from os.path import join, dirname, realpath
 from werkzeug.utils import secure_filename
+import sqlite3
 
-APP_ROOT = "/mnt/c/Github_Repos/zex-flutter-makerthon/server/"
+
+APP_ROOT = os.path.dirname(os.path.abspath(__file__))#"/mnt/c/Github_Repos/zex-flutter-makerthon/server/"
 UPLOAD_FOLDER = "training_files/"
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
+columns = ['aX', 'aY', 'aZ', 'gX', 'gY', 'gZ']
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -39,6 +43,8 @@ def allowed_file(filename):
 
 @app.route('/api/upload', methods=['POST'])
 def upload():
+    conn = sqlite3.connect('training_data.db')
+
     if request.method == 'POST':
         # check if the post request has the file part
         if 'file' not in request.files:
@@ -51,10 +57,28 @@ def upload():
             flash('No selected file')
             return redirect(request.url)
         if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(APP_ROOT, app.config['UPLOAD_FOLDER'], filename))
+            x = pd.read_csv(file, index_col=False, header=None, names=columns)
+            x.columns.name = 'time'
+            x = x.dropna()
+
+            data = x.values#np.loadtxt(file, delimiter=',', dtype=str)
+            #data = data.flatten()
+            print(data)
+
+            tablename = "file"+file.filename[0]
+            conn.execute("DROP TABLE IF EXISTS {}".format(tablename))
+            conn.execute("CREATE TABLE IF NOT EXISTS {}(id INTEGER PRIMARY KEY, ax, ay, az, gx, gy, gz)".format(tablename))
+            for row in data[:]:
+                cur = conn.execute("INSERT into {} (ax, ay, az, gx, gy, gz) values ({}, {}, {}, {}, {}, {})".format(tablename,row[0], row[1], row[2], row[3], row[4], row[5]))
+            conn.commit()
+            cur = conn.execute("select count(*) from {}".format(tablename))
+            print(str(cur.fetchone()[0]) + " datapoints inserted")
+            conn.close()
+           
+            # filename = secure_filename(file.filename)
+            # file.save(os.path.join(APP_ROOT, app.config['UPLOAD_FOLDER'], filename))
             return 'uploaded'
     return 'ok'
 
 if __name__ == '__main__':
-    app.run(port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)

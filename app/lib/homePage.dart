@@ -14,7 +14,7 @@ import 'package:app/idleTrainingPage.dart';
 import 'package:spotify/spotify_io.dart' as spotify;
 
 const String IFTTT_API_KEY = "cUFyYThzpW_SrXXbddRrb_";
-const String SERVER_URL = "http://845ca6c8.ngrok.io";
+const String SERVER_URL = "http://b4367bb9.ap.ngrok.io";
 const int SAMPLING_RATE = 60;
 
 class HomePage extends StatefulWidget { 
@@ -156,13 +156,21 @@ class _MyHomePageState extends State<HomePage> {
               gyrData = convert4ByteDataToIntList(v.sublist(6,18), 3);
               if(_writeToFile) { 
                 _writeData(_gestureIndexToWriteTo);
-                _gestureIndexToWriteTo == 0 ? null : _incGestureTrainingDuration(_gestureIndexToWriteTo); 
-                _gestureIndexToWriteTo == 0 ? null : _checkAndSetGestureTrained(_gestureIndexToWriteTo);
+                _gestureIndexToWriteTo == 0 ? null : _incGestureTrainingDuration(_gestureIndexToWriteTo-1); 
+                _gestureIndexToWriteTo == 0 ? null : _checkAndSetGestureTrained(_gestureIndexToWriteTo-1);
               }
 
               gestureDataBuffer.add([accData[0], accData[1], accData[2], gyrData[0], gyrData[1], gyrData[2]]); //probably better way to do this
               if(gestureDataBuffer.length >= SAMPLING_RATE && _isIdleTrained) {
-                _predictForGesture(new List.from(gestureDataBuffer));
+                bool anyActiveGesture = false;
+                for(Gesture g in _gesturesList) {
+                  anyActiveGesture = g.isGestureActive || anyActiveGesture;
+                  if(anyActiveGesture) {break;}
+                }
+
+                if(anyActiveGesture) {
+                  _predictForGesture(new List.from(gestureDataBuffer));
+                }
                 gestureDataBuffer.clear();
               }
             });
@@ -290,15 +298,12 @@ class _MyHomePageState extends State<HomePage> {
   }
 
   _writeData(int index) async {
-    if(_writeToFile && fileSink == null) {
+    if(fileSink == null) {
       final file = await _localFileForGesture(index);
       fileSink = file.openWrite(mode: FileMode.append);
     } else if (_writeToFile) {
       fileSink.write('${accData[0]},${accData[1]},${accData[2]},${gyrData[0]},${gyrData[1]},${gyrData[2]},\n');
-    } else {
-      fileSink?.close();
-      fileSink = null;
-    }
+    } 
     // await file.writeAsString("${accData[0]},${accData[1]},${accData[2]},${gyrData[0]},${gyrData[1]},${gyrData[2]},\n", 
     // mode: FileMode.append);
     // var sink = file.openWrite(mode: FileMode.append);
@@ -311,6 +316,11 @@ class _MyHomePageState extends State<HomePage> {
       _writeToFile = !_writeToFile;
       _gestureIndexToWriteTo = index;
     });
+
+    if(!_writeToFile) {
+      fileSink?.close();
+      fileSink = null;
+    }
   }
 
   /*
@@ -325,8 +335,8 @@ class _MyHomePageState extends State<HomePage> {
   }
 
   _incGestureTrainingDuration(int index) {
-    Gesture x = _gesturesList[index - 1];
-    _updateGesture(index - 1, new Gesture(
+    Gesture x = _gesturesList[index];
+    _updateGesture(index, new Gesture(
       x.gestureIndex, 
       x.isGestureTrained, 
       x.isGestureActive, 
@@ -336,9 +346,9 @@ class _MyHomePageState extends State<HomePage> {
   }
 
   _checkAndSetGestureTrained(int index) {
-    Gesture x = _gesturesList[index - 1];
+    Gesture x = _gesturesList[index];
     print(x.gestureTrainingDuration >= 30 * 60);
-    _updateGesture(index - 1, new Gesture(
+    _updateGesture(index, new Gesture(
       x.gestureIndex, 
       x.gestureTrainingDuration >= 30 * 60, //30 frames * 60 seconds 
       x.isGestureActive, 

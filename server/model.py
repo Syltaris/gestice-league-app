@@ -8,6 +8,7 @@ import pickle
 import requests
 import json
 import glob
+import sqlite3
 
 SAMPLING_FREQ = 60.0
 SAMPLING_RATE = int(SAMPLING_FREQ)
@@ -18,12 +19,21 @@ training_files = glob.glob('training_files/*.txt')
 frames = []
 labels = []
 
-for file in training_files:
-    label = int(file[len('training_files/')])
+conn = sqlite3.connect('training_data.db')
+cur = conn.execute("select tbl_name from sqlite_master where type='table'")
+tables = cur.fetchall()
 
-    x = pd.read_csv(file, index_col=False, header=None, names=columns)
-    x.columns.name = 'time'
-    x = x.dropna()
+for table in tables:
+    # label = int(file[len('training_files/')])
+    # x = pd.read_csv(file, index_col=False, header=None, names=columns)
+    # x.columns.name = 'time'
+    # x = x.dropna()
+
+    label = int(table[0][-1:])
+    query = "SELECT ax, ay, az, gx, gy, gz FROM {}".format(table[0])
+    print(query)
+    x = pd.read_sql_query(query, conn)
+    print(x)
 
     samples = int(len(x) / SAMPLING_FREQ)
     for i in range(0, samples):
