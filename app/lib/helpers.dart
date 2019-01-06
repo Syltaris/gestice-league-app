@@ -1,5 +1,10 @@
 import 'dart:typed_data';
 
+int convertUint8ListToInt(Uint8List data) {
+  var bdata = new ByteData.view(data.buffer);
+  return bdata.getInt8(0);
+}
+
 int convertDataToInt(List<int> values) {
   Uint8List buffer = Uint8List.fromList(values);
   var bdata = new ByteData.view(buffer.buffer);

@@ -1,8 +1,9 @@
 # Import libraries
+from ast import literal_eval
 import numpy as np
 import pandas as pd
 from flask import Flask, flash, request, redirect, url_for, jsonify
-from flask_socketio import SocketIO
+from flask_sockets import Sockets
 import pickle
 import os
 from os.path import join, dirname, realpath
@@ -17,23 +18,31 @@ columns = ['aX', 'aY', 'aZ', 'gX', 'gY', 'gZ']
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-socketio = SocketIO(app)
+sockets = Sockets(app)
 
-model = pickle.load(open('model.pkl','rb'))
+model = pickle.load(open('model.pkl','rb'))# Load the model
 
-# Load the model
-@socketio.on('message')
-def handle_message(message):
-    print('received json' + str(message))
-    send('ok received')
+@sockets.route('/')
+def test_socket(ws):
+    while not ws.closed:
+        data = ws.receive()
+        data = np.array(literal_eval(data))
+
+        #data =request.get_json()
+        #if len(data) < 30: return '300'
+        data = data.flatten()
+        # # Make prediction using model loaded from disk as per the data.
+        prediction = model.predict([data])
+        # Take the first value of prediction
+        output = prediction[0]
+        ws.send(str(output))
+        print(output)
 
 @app.route('/api/predict',methods=['POST'])
 def predict():
     # # Get the data from the POST request.
-    data =request.get_json()
-
+    data = request.get_json()
     if len(data) < 30: return '300'
-
     print(len(data))
     data = np.array(data)
     data = data.flatten()
@@ -89,5 +98,4 @@ def upload():
     return 'ok'
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True, host='0.0.0.0', port=5000)
-    #app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)

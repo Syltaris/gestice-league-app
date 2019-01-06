@@ -16,9 +16,9 @@ import 'package:app/idleTrainingPage.dart';
 import 'package:spotify/spotify_io.dart' as spotify;
 
 const String IFTTT_API_KEY = "cUFyYThzpW_SrXXbddRrb_";
-const String SERVER_URL = "http://6ce3b55d.ap.ngrok.io";
-const String SOCKET_URL = "ws://6ce3b55d.ap.ngrok.io";
-const int SAMPLING_RATE = 60;
+const String SERVER_URL = "http://77cc204f.ap.ngrok.io";
+const String SOCKET_URL = "ws://77cc204f.ap.ngrok.io";
+const int SAMPLING_RATE = 30;
 
 class HomePage extends StatefulWidget { 
   HomePage({Key key, this.title}) : super(key: key);
@@ -206,7 +206,8 @@ class _MyHomePageState extends State<HomePage> {
     deviceConnection = null;
     valuesSubscription?.cancel();
     valuesSubscription = null;
-
+    serverChannel?.sink?.close();
+    serverChannel = null;
     setState(() {
       device = null;
       sensorConnected = false;
@@ -405,29 +406,24 @@ class _MyHomePageState extends State<HomePage> {
     // Response response = await dio.post(SERVER_URL + "/api/predict", data: data);
     // int answer = int.parse(response.data.toString());
     // print(answer);
-
     if(serverChannel == null) {
       serverChannel = IOWebSocketChannel.connect(SOCKET_URL);
-      serverChannel.sink.add({'type':"message", 'data': "msg"});
       serverChannel.stream.listen((msg) {
+          int answer = int.parse(msg);
           print(msg);
-          // int answer = msg;
-          // if(answer == 0) { return; }
+          if(answer == 0) { return; }
 
-          // var g = _gesturesList[answer - 1];
-          // if(g.isGestureTrained && g.isGestureActive) {
-          //   if(answer == 2) {
-          //     _spotifyLogin();
-          //     return;
-          //   }
-          //   _sendRequest(answer);
-          // }
+          var g = _gesturesList[answer - 1];
+          if(g.isGestureTrained && g.isGestureActive) {
+            if(answer == 2) {
+              _spotifyLogin();
+              return;
+            }
+            _sendRequest(answer);
+          }
       });
-    } else {
-      serverChannel = null;
     }
-
-    serverChannel?.sink?.add('from app');
+    serverChannel?.sink?.add(json.encode(data));
   }
 
   _spotifyLogin() async {
@@ -580,14 +576,14 @@ class _MyHomePageState extends State<HomePage> {
                         textColor: Colors.white,
                         onPressed: !deviceFound ? null : () => _establishConnection(),
                       ),
-                      RaisedButton.icon(
-                        icon: Icon(Icons.bluetooth) ,
-                        label: const Text('SPOT'),
-                        color: Colors.green,
-                        disabledColor: Colors.grey,
-                        textColor: Colors.white,
-                        onPressed: () => _predictForGesture([0]),
-                      ),
+                      // RaisedButton.icon(
+                      //   icon: Icon(Icons.bluetooth) ,
+                      //   label: const Text('SPOT'),
+                      //   color: Colors.green,
+                      //   disabledColor: Colors.grey,
+                      //   textColor: Colors.white,
+                      //   onPressed: () => _predictForGesture([0]),
+                      // ),
                     ]
                   ),
                 ),

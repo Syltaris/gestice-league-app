@@ -17,6 +17,7 @@ c = "*"
 flask-socketio = "*"
 eventlet = "*"
 gunicorn = "*"
+flask-sockets = "*"
 
 [requires]
 python_version = "2.7"

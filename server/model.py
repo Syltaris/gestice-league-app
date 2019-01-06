@@ -10,7 +10,7 @@ import json
 import glob
 import sqlite3
 
-SAMPLING_FREQ = 60.0
+SAMPLING_FREQ = 30.0
 SAMPLING_RATE = int(SAMPLING_FREQ)
 columns = ['aX', 'aY', 'aZ', 'gX', 'gY', 'gZ']
 # Importing the dataset
