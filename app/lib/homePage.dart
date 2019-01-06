@@ -6,6 +6,8 @@ import 'package:flutter_blue/flutter_blue.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
+import 'package:web_socket_channel/io.dart';
+import 'package:web_socket_channel/status.dart' as status;
 
 import 'package:app/helpers.dart';
 import 'package:app/models/gesture.dart';
@@ -14,7 +16,8 @@ import 'package:app/idleTrainingPage.dart';
 import 'package:spotify/spotify_io.dart' as spotify;
 
 const String IFTTT_API_KEY = "cUFyYThzpW_SrXXbddRrb_";
-const String SERVER_URL = "http://1bd19bbb.ap.ngrok.io";
+const String SERVER_URL = "http://6ce3b55d.ap.ngrok.io";
+const String SOCKET_URL = "ws://6ce3b55d.ap.ngrok.io";
 const int SAMPLING_RATE = 60;
 
 class HomePage extends StatefulWidget { 
@@ -68,6 +71,9 @@ class _MyHomePageState extends State<HomePage> {
   var fileSink;
 
   List<Gesture> _gesturesList;
+
+  //Server sockets
+  var serverChannel;
 
   // Spotify
   bool _isPlaying = false;
@@ -396,20 +402,32 @@ class _MyHomePageState extends State<HomePage> {
   }
 
   _predictForGesture(var data) async {
-    Response response = await dio.post(SERVER_URL + "/api/predict", data: data);
-    int answer = int.parse(response.data.toString());
-    print(answer);
+    // Response response = await dio.post(SERVER_URL + "/api/predict", data: data);
+    // int answer = int.parse(response.data.toString());
+    // print(answer);
 
-    if(answer == 0) { return; }
+    if(serverChannel == null) {
+      serverChannel = IOWebSocketChannel.connect(SOCKET_URL);
+      serverChannel.sink.add({'type':"message", 'data': "msg"});
+      serverChannel.stream.listen((msg) {
+          print(msg);
+          // int answer = msg;
+          // if(answer == 0) { return; }
 
-    var g = _gesturesList[answer - 1];
-    if(g.isGestureTrained && g.isGestureActive) {
-      if(answer == 2) {
-        _spotifyLogin();
-        return;
-      }
-      _sendRequest(answer);
+          // var g = _gesturesList[answer - 1];
+          // if(g.isGestureTrained && g.isGestureActive) {
+          //   if(answer == 2) {
+          //     _spotifyLogin();
+          //     return;
+          //   }
+          //   _sendRequest(answer);
+          // }
+      });
+    } else {
+      serverChannel = null;
     }
+
+    serverChannel?.sink?.add('from app');
   }
 
   _spotifyLogin() async {
@@ -454,6 +472,8 @@ class _MyHomePageState extends State<HomePage> {
     deviceConnection = null;
     valuesSubscription?.cancel();
     valuesSubscription = null;
+    serverChannel?.sink?.close();
+    serverChannel = null;
     super.dispose();
     setState(() {
       device = null;
@@ -540,7 +560,6 @@ class _MyHomePageState extends State<HomePage> {
                   child: Image.asset('assets/icon/gl-logo2.png'),
               ),
               Container(
-                //margin: const EdgeInsets.only(bottom: 200.0), //TODO: not the best way to do this
                 child: ButtonTheme.bar( // make buttons use the appropriate styles for cards
                   height: 50.0,
                   child: ButtonBar(
@@ -561,14 +580,14 @@ class _MyHomePageState extends State<HomePage> {
                         textColor: Colors.white,
                         onPressed: !deviceFound ? null : () => _establishConnection(),
                       ),
-                      // RaisedButton.icon(
-                      //   icon: Icon(Icons.bluetooth) ,
-                      //   label: const Text('SPOT'),
-                      //   color: Colors.green,
-                      //   disabledColor: Colors.grey,
-                      //   textColor: Colors.white,
-                      //   onPressed: () => _spotifyLogin(),
-                      // ),
+                      RaisedButton.icon(
+                        icon: Icon(Icons.bluetooth) ,
+                        label: const Text('SPOT'),
+                        color: Colors.green,
+                        disabledColor: Colors.grey,
+                        textColor: Colors.white,
+                        onPressed: () => _predictForGesture([0]),
+                      ),
                     ]
                   ),
                 ),

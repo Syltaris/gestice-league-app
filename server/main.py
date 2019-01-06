@@ -2,6 +2,7 @@
 import numpy as np
 import pandas as pd
 from flask import Flask, flash, request, redirect, url_for, jsonify
+from flask_socketio import SocketIO
 import pickle
 import os
 from os.path import join, dirname, realpath
@@ -16,10 +17,16 @@ columns = ['aX', 'aY', 'aZ', 'gX', 'gY', 'gZ']
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+socketio = SocketIO(app)
 
 model = pickle.load(open('model.pkl','rb'))
 
 # Load the model
+@socketio.on('message')
+def handle_message(message):
+    print('received json' + str(message))
+    send('ok received')
+
 @app.route('/api/predict',methods=['POST'])
 def predict():
     # # Get the data from the POST request.
@@ -82,4 +89,5 @@ def upload():
     return 'ok'
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    socketio.run(app, debug=True, host='0.0.0.0', port=5000)
+    #app.run(host='0.0.0.0', port=5000, debug=True)
