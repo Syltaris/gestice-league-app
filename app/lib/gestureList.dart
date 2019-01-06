@@ -103,18 +103,6 @@ class _GestureItemState extends State<GestureItem> {
                   ),
               ),
             ),
-            // DropdownButton(
-            //   items: [
-            //     DropdownMenuItem(
-            //       child: Text('IFTTT'),
-            //       value: 'ifttt'
-            //     ),
-            //     DropdownMenuItem(
-            //       child: Text('Spotify'),
-            //       value: 'spotify'
-            //     )
-            //   ]
-            // ),
             ButtonTheme.bar( // make buttons use the appropriate styles for cards
               child: 
               ButtonBar(

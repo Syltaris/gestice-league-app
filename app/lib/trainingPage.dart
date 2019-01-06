@@ -6,8 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 
-
-const String SERVER_URL = "http://77cc204f.ap.ngrok.io";
+const String SERVER_URL = "http://3de639d0.ap.ngrok.io";
 
 class TrainingPage extends StatefulWidget { 
   String title;

@@ -16,8 +16,8 @@ import 'package:app/idleTrainingPage.dart';
 import 'package:spotify/spotify_io.dart' as spotify;
 
 const String IFTTT_API_KEY = "cUFyYThzpW_SrXXbddRrb_";
-const String SERVER_URL = "http://77cc204f.ap.ngrok.io";
-const String SOCKET_URL = "ws://77cc204f.ap.ngrok.io";
+const String SERVER_URL = "http://3de639d0.ap.ngrok.io";
+const String SOCKET_URL = "ws://3de639d0.ap.ngrok.io";
 const int SAMPLING_RATE = 30;
 
 class HomePage extends StatefulWidget { 
@@ -509,6 +509,25 @@ class _MyHomePageState extends State<HomePage> {
     //       gestureDataBuffer.clear();
     //     },
     //   ),
+    // );
+
+    // tiles.add(
+    //   Container(
+    //     child: Center(
+    //       child: DropdownButton<String>(
+    //         items: [
+    //           DropdownMenuItem<String>(
+    //             child: Text('IFTTT'),
+    //             value: 'ifttt'
+    //           ),
+    //           DropdownMenuItem<String>(
+    //             child: Text('Spotify'),
+    //             value: 'spotify'
+    //           )
+    //         ]
+    //       ),
+    //     )
+    //   )
     // );
     tiles.addAll(_buildGesturesList());
 
