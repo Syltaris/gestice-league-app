@@ -14,41 +14,35 @@ SAMPLING_FREQ = 30.0
 SAMPLING_RATE = int(SAMPLING_FREQ)
 columns = ['aX', 'aY', 'aZ', 'gX', 'gY', 'gZ']
 # Importing the dataset
-
-training_files = glob.glob('training_files/*.txt')
 frames = []
 labels = []
 
-conn = sqlite3.connect('training_data.db')
-cur = conn.execute("select tbl_name from sqlite_master where type='table'")
-tables = cur.fetchall()
-
-for table in tables:
-    # label = int(file[len('training_files/')])
-    # x = pd.read_csv(file, index_col=False, header=None, names=columns)
-    # x.columns.name = 'time'
-    # x = x.dropna()
-
-    label = int(table[0][-1:])
-    query = "SELECT ax, ay, az, gx, gy, gz FROM {}".format(table[0])
-    print(query)
-    x = pd.read_sql_query(query, conn)
-    print(x)
-
-    samples = int(len(x) / SAMPLING_FREQ)
-    for i in range(0, samples):
-        y = x.iloc[i*SAMPLING_RATE:(i+1)*SAMPLING_RATE]
-
-        if len(y) < int(SAMPLING_FREQ) : break
-
-        # time = np.arange(0, int(SAMPLING_FREQ)).reshape([-1, 1])
-        # time = time / SAMPLING_FREQ 
-        # y.index = time
-
-        frames.append(y.values.flatten())
-        labels.append(label)
-
 def train_knn():
+    conn = sqlite3.connect('training_data.db')
+    cur = conn.execute("select tbl_name from sqlite_master where type='table'")
+    tables = cur.fetchall()
+
+    for table in tables:
+        # label = int(file[len('training_files/')])
+        # x = pd.read_csv(file, index_col=False, header=None, names=columns)
+        # x.columns.name = 'time'
+        # x = x.dropna()
+
+        label = int(table[0][-1:])
+        query = "SELECT ax, ay, az, gx, gy, gz FROM {}".format(table[0])
+        print(query)
+        x = pd.read_sql_query(query, conn)
+        print(x)
+
+        samples = int(len(x) / SAMPLING_FREQ)
+        for i in range(0, samples):
+            y = x.iloc[i*SAMPLING_RATE:(i+1)*SAMPLING_RATE]
+
+            if len(y) < int(SAMPLING_FREQ) : break
+
+            frames.append(y.values.flatten())
+            labels.append(label)
+
     # # Splitting the dataset into the Training set and Test set
     X_train, X_test, y_train, y_test = train_test_split(frames, labels, test_size = 0.3, random_state = 21, stratify=labels)
 

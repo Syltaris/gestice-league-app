@@ -9,6 +9,7 @@ import os
 from os.path import join, dirname, realpath
 from werkzeug.utils import secure_filename
 import sqlite3
+from model import train_knn
 
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))#"/mnt/c/Github_Repos/zex-flutter-makerthon/server/"
@@ -91,6 +92,10 @@ def upload():
             cur = conn.execute("select count(*) from {}".format(tablename))
             print(str(cur.fetchone()[0]) + " datapoints inserted")
             conn.close()
+
+            model = None
+            train_knn()
+            model = pickle.load(open('model.pkl','rb'))# Load the model
            
             # filename = secure_filename(file.filename)
             # file.save(os.path.join(APP_ROOT, app.config['UPLOAD_FOLDER'], filename))
