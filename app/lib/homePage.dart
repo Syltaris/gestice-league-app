@@ -16,8 +16,8 @@ import 'package:app/idleTrainingPage.dart';
 import 'package:spotify/spotify_io.dart' as spotify;
 
 const String IFTTT_API_KEY = "cUFyYThzpW_SrXXbddRrb_";
-const String SERVER_URL = "http://211887fc.ap.ngrok.io";
-const String SOCKET_URL = "ws://211887fc.ap.ngrok.io";
+const String SERVER_URL = "http://eaef2278.ap.ngrok.io";
+const String SOCKET_URL = "ws://eaef2278.ap.ngrok.io";
 const int SAMPLING_RATE = 30;
 
 class HomePage extends StatefulWidget { 
@@ -71,6 +71,7 @@ class _MyHomePageState extends State<HomePage> {
   var fileSink;
 
   List<Gesture> _gesturesList;
+  List<int> predBuffer = [];
 
   //Server sockets
   var serverChannel;
@@ -173,10 +174,15 @@ class _MyHomePageState extends State<HomePage> {
                   anyActiveGesture = g.isGestureActive || anyActiveGesture;
                   if(anyActiveGesture) {break;}
                 }
+                _predictForGesture(new List.from(gestureDataBuffer));
 
-                if(anyActiveGesture) {
-                  _predictForGesture(new List.from(gestureDataBuffer));
-                }
+                // if(anyActiveGesture) {
+                //   _predictForGesture(new List.from(gestureDataBuffer));
+                // } 
+                // else if (serverChannel?.closeCode != null || serverChannel != null) {
+                //   serverChannel?.sink.close();
+                //   //serverChannel = null;
+                // }
                 gestureDataBuffer.clear();
               }
             });
@@ -206,8 +212,8 @@ class _MyHomePageState extends State<HomePage> {
     deviceConnection = null;
     valuesSubscription?.cancel();
     valuesSubscription = null;
-    serverChannel?.sink?.close();
-    serverChannel = null;
+    //serverChannel.sink?.close();
+    //serverChannel = null;
     setState(() {
       device = null;
       sensorConnected = false;
@@ -403,16 +409,23 @@ class _MyHomePageState extends State<HomePage> {
   }
 
   _predictForGesture(var data) async {
-    // Response response = await dio.post(SERVER_URL + "/api/predict", data: data);
-    // int answer = int.parse(response.data.toString());
-    // print(answer);
-    if(serverChannel == null) {
+    if(serverChannel?.closeCode != null|| serverChannel == null) {
       serverChannel = IOWebSocketChannel.connect(SOCKET_URL);
       serverChannel.stream.listen((msg) {
           int answer = int.parse(msg);
           print(msg);
+          if(predBuffer.length >= 5) { predBuffer.clear(); }
+          //ignore predicted if similar to prev answer, as a way to debounce
+          if(!predBuffer.isEmpty && answer == predBuffer.last) {
+            predBuffer.add(answer);
+            print("debouncing...");
+            return;
+          } else { //reset buffer and proceed with predictions
+            predBuffer.clear();
+            predBuffer.add(answer);
+          }
+          //outputs
           if(answer == 0) { return; }
-
           var g = _gesturesList[answer - 1];
           if(g.isGestureTrained && g.isGestureActive) {
             if(answer == 2) {
@@ -450,7 +463,7 @@ class _MyHomePageState extends State<HomePage> {
     headers:  {
       "Accept": "application/json",
       "Content-Type": "application/json",
-      HttpHeaders.authorizationHeader: "Bearer BQBKHtzOgV5dSdEpeL0flYbfRNCbKUtqjYHG2xkP7ISLahIMmu03VI3GLXCEdigc_TgMbgJSnETwRmkSzbkqwYERv1gQ5RWCix-G3h_iyofy13lVzK5FKVYuHkfF6qkggPlfcv65AhR_rb_K7NHtWcYBTA"
+      HttpHeaders.authorizationHeader: "Bearer BQBJ4C5aIcQCvSeji0yUhqF-26JHBYDR_9w3FdO6Ik-_uOsgSHb7D8rH2GDzfYa3zUWkqTj2Sy-cWqtlIL9ve1elBsFRQ22QNU3BWdd9t_j-9RMtTUZAXPn8eChxPkYoIawjUvS4bOxLjCbmM0JlsQmczg"
     })
     .then((response) {
       print("Response status: ${response.statusCode}");
@@ -468,7 +481,7 @@ class _MyHomePageState extends State<HomePage> {
     deviceConnection = null;
     valuesSubscription?.cancel();
     valuesSubscription = null;
-    serverChannel?.sink?.close();
+    serverChannel.sink?.close();
     serverChannel = null;
     super.dispose();
     setState(() {

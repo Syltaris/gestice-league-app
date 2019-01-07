@@ -27,18 +27,23 @@ model = pickle.load(open('model.pkl','rb'))# Load the model
 def test_socket(ws):
     while not ws.closed:
         data = ws.receive()
-        data = np.array(literal_eval(data))
 
         #data =request.get_json()
-        #if len(data) < 30: return '300'
-        data = data.flatten()
-        # # Make prediction using model loaded from disk as per the data.
-        prediction = model.predict([data])
-        probs = model.predict
-        # Take the first value of prediction
-        output = prediction[0]
-        ws.send(str(output))
-        print(output)
+        if data is None:
+            if not ws.closed:
+                ws.send("0")
+        else:
+            data = np.array(literal_eval(data))
+            data = data.flatten()
+            # # Make prediction using model loaded from disk as per the data.
+            prediction = model.predict([data])
+            probs = model.predict
+            # Take the first value of prediction
+            output = prediction[0]
+            ws.send(str(output))
+            print(output)
+    print('Connection closed!')
+        
 
 @app.route('/api/predict',methods=['POST'])
 def predict():
