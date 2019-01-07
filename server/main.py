@@ -11,16 +11,34 @@ from werkzeug.utils import secure_filename
 import sqlite3
 from model import train_knn
 
+
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))#"/mnt/c/Github_Repos/zex-flutter-makerthon/server/"
 UPLOAD_FOLDER = "training_files/"
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 columns = ['aX', 'aY', 'aZ', 'gX', 'gY', 'gZ']
 
 app = Flask(__name__)
-app.debug = True
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 sockets = Sockets(app)
 
 model = pickle.load(open('model.pkl','rb'))# Load the model
+
+@sockets.route('/')
+def test_socket(ws):
+    while not ws.closed:
+        data = ws.receive()
+        data = np.array(literal_eval(data))
+
+        #data =request.get_json()
+        #if len(data) < 30: return '300'
+        data = data.flatten()
+        # # Make prediction using model loaded from disk as per the data.
+        prediction = model.predict([data])
+        probs = model.predict
+        # Take the first value of prediction
+        output = prediction[0]
+        ws.send(str(output))
+        print(output)
 
 @app.route('/api/predict',methods=['POST'])
 def predict():
@@ -34,7 +52,7 @@ def predict():
     prediction = model.predict([data])
     # Take the first value of prediction
     output = prediction[0]
-    print(output)
+    print(prediction)
     return jsonify(output)
     return '200'
 
@@ -44,9 +62,8 @@ def allowed_file(filename):
 
 @app.route('/api/upload', methods=['POST'])
 def upload():
-    print('loading db...')
     conn = sqlite3.connect('training_data.db')
-    print('db loaded')
+
     if request.method == 'POST':
         # check if the post request has the file part
         if 'file' not in request.files:
@@ -85,53 +102,6 @@ def upload():
             # file.save(os.path.join(APP_ROOT, app.config['UPLOAD_FOLDER'], filename))
             return 'uploaded'
     return 'ok'
-
-@sockets.route('/')
-def test_socket(ws):
-    while not ws.closed:
-        data = ws.receive()
-        data = np.array(literal_eval(data))
-
-        #data =request.get_json()
-        #if len(data) < 30: return '300'
-        data = data.flatten()
-        # # Make prediction using model loaded from disk as per the data.
-        prediction = model.predict([data])
-        # Take the first value of prediction
-        output = prediction[0]
-        ws.send(str(output))
-        print(output)
-
-"""
-IFTTT API Endpoints
-"""
-@app.route('/ifttt/v1/status')
-def ifttt_status():
-    return "200"
-
-@app.route('/ifttt/v1/test/setup')
-def ifttt_setup():
-    return "200"
-
-@app.route('/ifttt/v1/triggers/gesture_1_detected')
-def ifttt_gesture_1():
-    return "200"
-
-@app.route('/ifttt/v1/triggers/gesture_2_detected')
-def ifttt_gesture_2():
-    return "200"
-
-@app.route('/ifttt/v1/triggers/gesture_3_detected')
-def ifttt_gesture_3():
-    return "200"
-
-@app.route('/ifttt/v1/triggers/gesture_4_detected')
-def ifttt_gesture_4():
-    return "200"
-
-@app.route('/ifttt/v1/triggers/gesture_5_detected')
-def ifttt_gesture_5():
-    return "200"
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
