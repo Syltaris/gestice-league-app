@@ -15,9 +15,10 @@ import 'package:app/gestureList.dart';
 import 'package:app/idleTrainingPage.dart';
 import 'package:spotify/spotify_io.dart' as spotify;
 
+const String SPOTIFY_BEARER_TOKEN = "Bearer BQDunVINAFgTzNLnH6-33sUiQca0mucwMNQ90RxI9ECo4Y4Zglz_-pyDpjQUxULUmM11LrRCecErqSHpnqoeP20SimvcW1LBKauUKxeqbn084krdbzUjBt_5pZ38ZeZY_0rsH1772N-_20zkXVf3oWixAg";
 const String IFTTT_API_KEY = "cUFyYThzpW_SrXXbddRrb_";
-const String SERVER_URL = "http://eaef2278.ap.ngrok.io";
-const String SOCKET_URL = "ws://eaef2278.ap.ngrok.io";
+const String SERVER_URL = "http://31003b03.ap.ngrok.io";
+const String SOCKET_URL = "ws://31003b03.ap.ngrok.io";
 const int SAMPLING_RATE = 30;
 
 class HomePage extends StatefulWidget { 
@@ -463,7 +464,7 @@ class _MyHomePageState extends State<HomePage> {
     headers:  {
       "Accept": "application/json",
       "Content-Type": "application/json",
-      HttpHeaders.authorizationHeader: "Bearer BQBJ4C5aIcQCvSeji0yUhqF-26JHBYDR_9w3FdO6Ik-_uOsgSHb7D8rH2GDzfYa3zUWkqTj2Sy-cWqtlIL9ve1elBsFRQ22QNU3BWdd9t_j-9RMtTUZAXPn8eChxPkYoIawjUvS4bOxLjCbmM0JlsQmczg"
+      HttpHeaders.authorizationHeader: SPOTIFY_BEARER_TOKEN,
     })
     .then((response) {
       print("Response status: ${response.statusCode}");
